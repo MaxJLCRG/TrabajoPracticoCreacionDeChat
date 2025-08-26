@@ -1,4 +1,5 @@
-import { connectDB } from "../../lib/base";
+//import { connectDB } from "../../lib/base";
+import { connectDB } from "@/lib/base";
 
 export async function GET() {
     const db = await connectDB();
