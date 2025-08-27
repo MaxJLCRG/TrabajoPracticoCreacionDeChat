@@ -11,7 +11,7 @@ export default function LoginPage() {
           <span className={styles.logoBlack}>.</span>
           <span className={styles.logoOrange}>CHAT</span>
           <br></br>
-          <span className={styles.LogoBlack}>Iniciar Sesion</span>
+          <span className={styles.LogoBlack}>Registrate</span>
         </h1>
 
         <form className={styles.form}>
@@ -22,10 +22,10 @@ export default function LoginPage() {
             <label>
               <input type="checkbox" /> Recuérdame
             </label>
-            <a href="#">¿Has perdido tu contraseña?</a>
+            <a href="#">¿Ya tienes una cuenta?</a>
           </div>
 
-          <button type="submit" className={styles.button}>Acceder</button>
+          <button type="submit" className={styles.button}>Registrate</button>
         </form>
 
         <p className={styles.footer}>
