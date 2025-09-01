@@ -1,26 +1,19 @@
 "use client"
 
 import styles from "@/app/Styles/LoginRegister.module.css";
-import Head from "next/head"
+import Head from "next/head";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
     <>
-      <div>
-        <Head>
-          <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin></link>
-          <link href="https://fonts.googleapis.com/css2?family=Libertinus+Keyboard&display=swap" rel="stylesheet"></link>
-        </Head>
-      </div>
-
       <div className={styles.container}>
         <div className={styles.card}>
           <h1 className={styles.logo}>
             <span className={styles.logoGreen1}>TP</span>
             <span className={styles.logoBlack}>.</span>
             <span className={styles.logoGreen2}>CHAT</span>
-            <br></br>
+            <br />
             <span className={styles.LogoBlack}>Iniciar Sesion</span>
           </h1>
 
@@ -32,18 +25,17 @@ export default function LoginPage() {
               <label>
                 <input type="checkbox" /> Recuérdame
               </label>
-              <a href="#">¿Has perdido tu contraseña?</a>
+              <Link href="/Register">¿Has perdido tu contraseña?</Link>
             </div>
 
             <button type="submit" className={styles.button}>Acceder</button>
           </form>
 
           <p className={styles.footer}>
-            TP | Desarrollo web [PRUEBAS]
+            <Link href="/Register">¿No tienes una cuenta? Regístrate</Link>
           </p>
         </div>
       </div>
     </>
-        );
+  );
 }
-
