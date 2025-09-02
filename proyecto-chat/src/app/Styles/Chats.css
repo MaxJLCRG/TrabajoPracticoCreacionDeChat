@@ -1,0 +1,107 @@
+.container {
+    display: flex;
+    height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.sidebar {
+    width: 30%;
+    background: #fff;
+    border-right: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+}
+
+.search {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.search input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.chatList {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chatItem {
+    padding: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chatItem:hover {
+    background: #f0f0f0;
+}
+
+.active {
+    background: #e0e0e0;
+}
+
+.chatArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatHeader {
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    background: #eee;
+    font-weight: bold;
+}
+
+.chatBody {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.chatInput {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background: #fff;
+}
+
+.chatInput input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.chatInput button {
+    margin-left: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+}
+
+.chatInput button:hover {
+    background: #43a047;
+}
+
+.addUserButton {
+    margin: 10px;
+    padding: 10px;
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none; /* por defecto oculto */
+}
+
+.showButton {
+  display: block; /* se muestra solo cuando se cumpla la condición */
+}

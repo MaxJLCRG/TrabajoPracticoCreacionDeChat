@@ -22,14 +22,15 @@ export default function LoginPage() {
             <input type="password" placeholder="Password" className={styles.input} />
 
             <div className={styles.options}>
-              <label>
-                <input type="checkbox" /> Recuérdame
-              </label>
+              
               <Link href="/Register">¿Has perdido tu contraseña?</Link>
             </div>
 
             <button type="submit" className={styles.button}>Acceder</button>
           </form>
+          <label class="inp">
+              <input type="checkbox" /> Recuérdame
+          </label>
 
           <p className={styles.footer}>
             <Link href="/Register">¿No tienes una cuenta? Regístrate</Link>
