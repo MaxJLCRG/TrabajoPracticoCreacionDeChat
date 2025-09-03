@@ -6,8 +6,8 @@
 
 .sidebar {
     width: 30%;
-    background: #fff;
-    border-right: 1px solid #ccc;
+    background: #ffffff;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 1) 20%, rgba(182, 182, 182, 1) 80%);    border-right: 1px solid #ccc;
     display: flex;
     flex-direction: column;
 }
@@ -36,11 +36,13 @@
 }
 
 .chatItem:hover {
-    background: #f0f0f0;
+    background: #70c294;
+    background: linear-gradient(180deg, rgba(112, 194, 148, 1) 3%, rgba(67, 168, 150, 1) 52%);
 }
 
 .active {
-    background: #e0e0e0;
+background: #70c294;
+background: linear-gradient(180deg, rgba(112, 194, 148, 1) 3%, rgba(67, 168, 150, 1) 52%);
 }
 
 .chatArea {
@@ -52,7 +54,8 @@
 .chatHeader {
     padding: 15px;
     border-bottom: 1px solid #ccc;
-    background: #eee;
+    background: #ffffff;
+    background: linear-gradient(82deg, rgba(255, 255, 255, 1) 65%, rgba(182, 182, 182, 1) 100%);
     font-weight: bold;
 }
 
@@ -60,7 +63,8 @@
     flex: 1;
     padding: 15px;
     overflow-y: auto;
-    background: #fafafa;
+    background: #209e57;
+    background: linear-gradient(180deg, rgba(65, 145, 99, 1) 3%, rgba(34, 138, 117, 1) 52%);
 }
 
 .chatInput {
@@ -88,7 +92,7 @@
 }
 
 .chatInput button:hover {
-    background: #43a047;
+    background: #43a084;
 }
 
 .addUserButton {

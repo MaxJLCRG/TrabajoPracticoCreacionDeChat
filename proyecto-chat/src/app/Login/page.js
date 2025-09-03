@@ -10,9 +10,8 @@ export default function LoginPage() {
       <div className={styles.container}>
         <div className={styles.card}>
           <h1 className={styles.logo}>
-            <span className={styles.logoGreen1}>TP</span>
-            <span className={styles.logoBlack}>.</span>
-            <span className={styles.logoGreen2}>CHAT</span>
+            <span className={styles.logoGreen1}>WAT</span>
+            <span className={styles.logoGreen2}>SAP</span>
             <br />
             <span className={styles.LogoBlack}>Iniciar Sesion</span>
           </h1>
@@ -28,7 +27,7 @@ export default function LoginPage() {
 
             <button type="submit" className={styles.button}>Acceder</button>
           </form>
-          <label class="inp">
+          <label className="inp">
               <input type="checkbox" /> Recuérdame
           </label>
 

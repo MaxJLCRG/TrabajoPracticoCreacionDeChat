@@ -18,9 +18,8 @@ return (
     <div className={styles.container}>
         <div className={styles.card}>
         <h1 className={styles.logo}>
-            <span className={styles.logoGreen1}>TP</span>
-            <span className={styles.logoBlack}>.</span>
-            <span className={styles.logoGreen2}>CHAT</span>
+            <span className={styles.logoGreen1}>WAT</span>
+            <span className={styles.logoGreen2}>SAP</span>
             <br></br>
             <span className={styles.LogoBlack}>Registrate</span>
         </h1>
