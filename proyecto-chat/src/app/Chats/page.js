@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import styles from "../Styles/Chats.css";
+import styles from "@/app/Styles/Chats.module.css";
 
 export default function ChatPage() {
     const [chats, setChats] = useState(["Juan", "María", "Pedro"]);

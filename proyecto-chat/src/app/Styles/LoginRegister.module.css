@@ -3,7 +3,8 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(to left , rgb(11, 119, 11), rgb(19, 53, 37)); /* verde a blanco :v */
+    background: #3A9593;
+    background: linear-gradient(90deg, rgba(58, 149, 147, 1) 35%, rgba(87, 199, 133, 1) 48%, rgba(76, 224, 138, 1) 74%);
     letter-spacing: 2px;
 
 }
@@ -24,15 +25,11 @@
 }
 
 .logoGreen1 {
-    color: #1d1d1d;
+    color: rgba(76, 224, 138, 1);
 }
 
 .logoGreen2 {
-    color: rgb(2, 128, 12);
-}
-
-.logoBlack{
-    color: rgb(0, 0, 0);
+    color:  rgba(58, 149, 147, 1);
 }
 
 .form {
