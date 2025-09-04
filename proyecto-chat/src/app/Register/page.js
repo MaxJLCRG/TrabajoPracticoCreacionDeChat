@@ -38,7 +38,7 @@ return (
 
             </div>
 
-            <button type="submit" className={styles.button}>Acceder</button>
+            <button type="submit" className={styles.button}>Siguiente . . .</button>
         </form>
 
         <p className={styles.footer}>

@@ -6,7 +6,6 @@
     background: #3A9593;
     background: linear-gradient(90deg, rgba(58, 149, 147, 1) 35%, rgba(87, 199, 133, 1) 48%, rgba(76, 224, 138, 1) 74%);
     letter-spacing: 2px;
-
 }
 
 .card {
@@ -22,6 +21,7 @@
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 1.5rem;
+    color: #0e0e0e;
 }
 
 .logoGreen1 {
@@ -39,7 +39,7 @@
 }
 
 .input {
-    border: 1px solid #a8a8a8;
+    border: 1px solid #000000;
     border-radius: 5px;
     padding: 0.6rem;
     font-size: 1rem;
@@ -74,4 +74,34 @@
 
 .inp input {
     justify-content: start;
+}
+
+/* 🔹 Recuadro de carga de imagen */
+.dropzone {
+    border: 2px dashed #aaaaaa;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    background: #fafafa;
+    transition: background 0.3s ease;
+}
+
+.dropzone:hover {
+    background: #616161;
+}
+
+/* 🔹 Texto dentro del dropzone */
+.dropzoneText {
+    color: darkgrey;
+    font-size: 0.95rem;
+}
+
+/* 🔹 Preview de la imagen */
+.preview {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 10px;
+    object-fit: cover;
 }
