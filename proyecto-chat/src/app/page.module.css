@@ -1,0 +1,28 @@
+.space1 {
+    background: #c4ffc4;
+    height: 60vh;
+    width: 100%;
+    padding: 50px;
+    margin: 0;
+}
+
+.space2 {
+    background-color: white;
+    height: 60vh;
+    width: 100%;
+    border-radius: 5%;
+    justify-content: center;
+    text-align: center;
+}
+
+.space1h1 {
+
+}
+
+.space1p1 {
+    font-size: 16px;
+    padding: 10px 600px 10px 0;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+    text-align: justify;
+}

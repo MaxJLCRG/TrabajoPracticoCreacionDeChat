@@ -3,6 +3,8 @@
 import styles from "@/app/Styles/LoginRegister.module.css";
 import Head from "next/head";
 import Link from "next/link";
+import Button from "@/app/Components/Button.js"
+import Input from "@/app/Components/Input.js"
 
 export default function LoginPage() {
   return (
@@ -17,18 +19,18 @@ export default function LoginPage() {
           </h1>
 
           <form className={styles.form}>
-            <input type="text" placeholder="Username" className={styles.input} />
-            <input type="password" placeholder="Password" className={styles.input} />
+            <Input className={styles.input} type="text" placeholder="Username"/>
+            <Input className={styles.input} type="password" placeholder="Password"/>
 
             <div className={styles.options}>
               
               <Link href="/Register">¿Has perdido tu contraseña?</Link>
             </div>
 
-            <button type="submit" className={styles.button}>Acceder</button>
+            <Button className={styles.button} type="submit">Acceder</Button>
           </form>
           <label className="inp">
-              <input type="checkbox" /> Recuérdame
+              <Input type="checkbox"/> Recuérdame
           </label>
 
           <p className={styles.footer}>
