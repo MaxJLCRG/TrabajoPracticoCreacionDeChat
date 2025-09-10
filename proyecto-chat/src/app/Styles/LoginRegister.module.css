@@ -60,6 +60,7 @@
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+
 }
 
 .button:hover {
@@ -104,4 +105,9 @@
     max-height: 200px;
     border-radius: 10px;
     object-fit: cover;
+}
+
+.options:hover {
+    color: blue;
+    text-decoration: underline;
 }

@@ -1,24 +1,50 @@
-"use client"
+'use client'
+import styles from './page.module.css';
+import './globals.css'
+import Link from 'next/link';
 
-import { useState } from "react";
-import styles from "@/app/page.module.css";
-import Head from "next/head";
-
-export default function MenuPage() {
+export default function Page() {
     return (
-        <>
-            <div className={styles.space1}>
-                <h1 className={styles.space1h1}>¡Bienvenido/a a WATSUP!</h1>
-                <br></br>
-                <p className={styles.space1p1}>Gracias por unirte a WATSUP, tu nueva forma de mantenerte conectado con quienes más te importan.
-Nuestra plataforma de mensajería te permite enviar mensajes instantáneos, compartir fotos, videos, notas de voz y mucho más, de forma rápida, segura y sencilla.
-
-WATSUP está diseñada para que la comunicación sea tan fluida y cercana como una conversación cara a cara. Ya sea con amigos, familia o compañeros de trabajo, acá vas a poder mantenerte siempre al tanto.</p>
+        <div className={styles.container}>
+        <header className={styles.header}>
+            <div className={styles.logo}>WATSUP</div>
+            <nav className={styles.nav}>
+            <a href="#">Producto</a>
+            <a href="#">Precios</a>
+            <a href="#">Clientes</a>
+            </nav>
+            <div className={styles.actions}>
+            <a className={styles.login} href="/Login">Inicia sesión</a>
+            <button className={styles.greenButton}>
+                <Link href="/Register">Registrate</Link>
+            </button>
             </div>
-            <div className={styles.space2}>
-                <h1>GILLLLL</h1> 
+        </header>
+        
+        <main className={styles.main}>
+            <h1>Absolutamente nadie usa WATSUP!!</h1>
+            <p>La aplicacion de mensajería mas infradesarollada que hay, <br/>con la discreción que buscas y la seguridad que exiges. (Lo ultimo es mentira)</p>
+            <div className={styles.inputGroup}>
+            <button className={styles.greenButton}>
+                <Link href="/Register">Empieza gratis</Link>
+            </button>
             </div>
-        </>
 
-    )
+            <div className={styles.clients}>
+            <p>Las principales empresas eligen WATSUP</p>
+            <div className={styles.logos}>
+                <span>PayPal</span>
+                <span>Hootsuite</span>
+                <span>Airbus</span>
+                <span>Hawaiian Airlines</span>
+                <span>UMASS</span>
+                <span>Capgemini</span>
+                <span>Ninguna de las anteriores</span>
+            </div>
+            </div>
+        </main>
+        </div>
+    );
 }
+
+
