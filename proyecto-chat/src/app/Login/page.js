@@ -34,7 +34,7 @@ export default function LoginPage() {
           </label>
 
           <p className={styles.footer}>
-            <Link href="/Register">¿No tienes una cuenta? Regístrate</Link>
+            <Link href="/Register" >¿No tienes una cuenta? Regístrate</Link>
           </p>
         </div>
       </div>
