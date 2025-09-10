@@ -1,28 +1,123 @@
-.space1 {
-    background: #c4ffc4;
-    height: 60vh;
-    width: 100%;
-    padding: 50px;
+.container {
+    font-family: Arial, sans-serif;
+    background-color: #a0c1ae;
+    min-height: 100vh;
+    padding: 0;
     margin: 0;
+    color: #333;
 }
 
-.space2 {
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px; /* antes era 20px 60px */
     background-color: white;
-    height: 60vh;
-    width: 100%;
-    border-radius: 5%;
+    border-bottom: 1px solid #ddd;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4bae4f;
+}
+
+.nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.login {
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+}
+
+.greenButton {
+    background-color: #4bae4f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.main {
+    background-color: #a0c1ae;
+    background-image: url('/FondoMain.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+
     text-align: center;
+    color: #fff;
+    padding: 24px 20px 40px;
 }
 
-.space1h1 {
-
+.main h1 {
+    margin-top: 0;
 }
 
-.space1p1 {
-    font-size: 16px;
-    padding: 10px 600px 10px 0;
-    letter-spacing: 0.5px;
-    line-height: 1.6;
-    text-align: justify;
+.main > * + * {
+    margin-top: 16px;
+}
+
+.main h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.main p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+.inputGroup {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.inputGroup input {
+    padding: 12px;
+    width: 300px;
+    border: none;
+    border-radius: 4px;
+}
+
+.clients {
+    background-color: rgba(236, 236, 236, 0.95);
+    color: #333;
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.clients .logos {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.clients span {
+    font-weight: bold;
+    opacity: 0.7;
 }
