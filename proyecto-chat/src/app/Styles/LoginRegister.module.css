@@ -6,6 +6,7 @@
     background: #3A9593;
     background: linear-gradient(90deg, rgba(58, 149, 147, 1) 35%, rgba(87, 199, 133, 1) 48%, rgba(76, 224, 138, 1) 74%);
     letter-spacing: 2px;
+    color: #000000;
 }
 
 .card {
@@ -29,7 +30,7 @@
 }
 
 .logoGreen2 {
-    color:  rgba(58, 149, 147, 1);
+    color: rgba(58, 149, 147, 1);
 }
 
 .form {
@@ -60,7 +61,7 @@
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-
+    transition: all 0.3s ease;
 }
 
 .button:hover {
@@ -71,10 +72,22 @@
     margin-top: 1.5rem;
     font-size: 0.8rem;
     color: #666;
-}  
+}
 
-.inp input {
-    justify-content: start;
+.inp {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+}
+
+.inp input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
 /* 🔹 Recuadro de carga de imagen */
