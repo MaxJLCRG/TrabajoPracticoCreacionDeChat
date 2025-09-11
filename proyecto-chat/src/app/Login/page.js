@@ -27,10 +27,11 @@ export default function LoginPage() {
               <Link href="/Register">¿Has perdido tu contraseña?</Link>
             </div>
 
-            <Button className={styles.button} type="submit">Acceder</Button>
+            <button type="submit" className={styles.button}>Siguiente . . .</button>
+
           </form>
           <label className="inp">
-              <Input type="checkbox"/> Recuérdame
+              <Input className="pto" type="checkbox"/> Recuérdame
           </label>
 
           <p className={styles.footer}>

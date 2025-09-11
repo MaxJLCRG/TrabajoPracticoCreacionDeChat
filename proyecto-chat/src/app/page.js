@@ -9,14 +9,18 @@ export default function Page() {
         <header className={styles.header}>
             <div className={styles.logo}>WATSUP</div>
             <nav className={styles.nav}>
-            <a href="#">Producto</a>
-            <a href="#">Precios</a>
-            <a href="#">Clientes</a>
+                <a href="#">Nuestro grupo</a>
+                <a href="#">Funciones</a>
+                <a href="https://github.com/MaxJLCRG/TrabajoPracticoCreacionDeChat" target="_blank" rel="noopener noreferrer" className="github-link">
+                    Nuestro Repo GitHub
+                </a>
             </nav>
             <div className={styles.actions}>
             <a className={styles.login} href="/Login">Inicia sesión</a>
             <button className={styles.greenButton}>
-                <Link href="/Register">Registrate</Link>
+                <Link href="/Register">
+                Registrate
+                </Link>
             </button>
             </div>
         </header>

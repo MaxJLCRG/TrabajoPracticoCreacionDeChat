@@ -34,7 +34,7 @@ return (
             <input type="password" placeholder="Password" className={styles.input} />
 
             <div className={styles.options}>
-                <Link href="/Login">¿Ya tienes una cuenta Inicia Sesion?</Link>
+                <Link href="/Login">¿Ya tienes una cuenta? Inicia Sesion</Link>
             </div>
 
             <button type="submit" className={styles.button}>Siguiente . . .</button>
