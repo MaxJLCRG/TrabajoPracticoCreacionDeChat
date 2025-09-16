@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 
 const useSocket = (
   options = { withCredentials: false },
-  serverUrl = "http://localhost:4000" // 👈 Backend en el puerto 4000
+  serverUrl = "http://localhost:4000"
 ) => {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -13,12 +13,12 @@ const useSocket = (
 
     socketIo.on("connect", () => {
       setIsConnected(true);
-      console.log("✅ WebSocket conectado al backend en", serverUrl);
+      console.log("✅ Conectado al servidor");
     });
 
     socketIo.on("disconnect", () => {
       setIsConnected(false);
-      console.log("❌ WebSocket desconectado");
+      console.log("❌ Desconectado del servidor");
     });
 
     setSocket(socketIo);

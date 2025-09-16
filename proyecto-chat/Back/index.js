@@ -1,28 +1,28 @@
-const port = process.env.PORT || 3000;								// Puerto por el que estoy ejecutando la página Web
+const express = require("express");
+const cors = require("cors");
+const session = require("express-session");
 
-const cors = require('cors');
-const session = require('express-session');				// Para el manejo de las variables de sesión
+const app = express();
+const port = process.env.PORT || 4000; // 👈 CAMBIO A 4000
 
 app.use(cors());
 
 const server = app.listen(port, () => {
 	console.log(`Servidor NodeJS corriendo en http://localhost:${port}/`);
-});;
+});
 
-const io = require('socket.io')(server, {
+const io = require("socket.io")(server, {
 	cors: {
-		// IMPORTANTE: REVISAR PUERTO DEL FRONTEND
-		origin: ["http://localhost:3000", "http://localhost:3001"], // Permitir el origen localhost:3000
-		methods: ["GET", "POST", "PUT", "DELETE"],  	// Métodos permitidos
-		credentials: true                           	// Habilitar el envío de cookies
-	}
+    origin: ["http://localhost:3000", "http://localhost:3001"], // 👈 Frontend en 3000
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+	},
 });
 
 const sessionMiddleware = session({
-	//Elegir tu propia key secreta
 	secret: "pandy",
 	resave: false,
-	saveUninitialized: false
+	saveUninitialized: false,
 });
 
 app.use(sessionMiddleware);
@@ -31,35 +31,16 @@ io.use((socket, next) => {
 	sessionMiddleware(socket.request, {}, next);
 });
 
-/*
-	A PARTIR DE ACÁ LOS EVENTOS DEL SOCKET
-	A PARTIR DE ACÁ LOS EVENTOS DEL SOCKET
-	A PARTIR DE ACÁ LOS EVENTOS DEL SOCKET
-*/
-
+// Evento de prueba
 io.on("connection", (socket) => {
-	const req = socket.request;
+	console.log("🔌 Cliente conectado:", socket.id);
 
-	socket.on('joinRoom', data => {
-		console.log("🚀 ~ io.on ~ req.session.room:", req.session.room)
-		if (req.session.room != undefined && req.session.room.length > 0)
-			socket.leave(req.session.room);
-		req.session.room = data.room;
-		socket.join(req.session.room);
-
-		io.to(req.session.room).emit('chat-messages', { user: req.session.user, room: req.session.room });
+	socket.on("pingAll", (data) => {
+    console.log("📩 PING recibido:", data);
+    io.emit("pingAll", { event: "pingAll", message: data });
 	});
 
-	socket.on('pingAll', data => {
-		console.log("PING ALL: ", data);
-		io.emit('pingAll', { event: "Ping to all", message: data });
+	socket.on("disconnect", () => {
+    console.log("❌ Cliente desconectado:", socket.id);
 	});
-
-	socket.on('sendMessage', data => {
-		io.to(req.session.room).emit('newMessage', { room: req.session.room, message: data });
-	});
-
-	socket.on('disconnect', () => {
-		console.log("Disconnect");
-	})
 });
