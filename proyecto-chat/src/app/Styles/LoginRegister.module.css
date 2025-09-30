@@ -1,126 +1,98 @@
+/* Fondo general con degradado y centrado del card */
 .container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     min-height: 100vh;
-    background: #3A9593;
-    background: linear-gradient(90deg, rgba(58, 149, 147, 1) 35%, rgba(87, 199, 133, 1) 48%, rgba(76, 224, 138, 1) 74%);
-    letter-spacing: 2px;
-    color: #000000;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(90deg, #2da39e 0%, rgba(45,163,158,0.6) 45%, #4de08e 100%);
 }
 
+/* Tarjeta principal */
 .card {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 380px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    width: min(92vw, 520px);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    padding: 28px 26px 24px;
 }
 
+/* Marca (WATSAP + subtítulo) */
 .logo {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-    color: #0e0e0e;
+    text-align: center;
+    line-height: 1.1;
+    margin: 0 0 18px 0;
+    letter-spacing: 0.6px;
 }
+.logoGreen1 { color: #5fffb0; font-weight: 800; font-size: 28px; }
+.logoGreen2 { color: #3cc9a8; font-weight: 800; font-size: 28px; margin-left: 6px; }
+.LogoBlack  { color: #111; font-weight: 700; font-size: 28px; }
 
-.logoGreen1 {
-    color: rgba(76, 224, 138, 1);
-}
+/* Formulario */
+.form { display: grid; gap: 12px; margin-top: 4px; }
 
-.logoGreen2 {
-    color: rgba(58, 149, 147, 1);
-}
-
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
+/* Inputs oscuros con bordes redondeados como en la captura */
 .input {
-    border: 1px solid #000000;
-    border-radius: 5px;
-    padding: 0.6rem;
-    font-size: 1rem;
+    width: 100%;
+    height: 42px;
+    border-radius: 6px;
+    border: 1px solid #2d2d2d;
+    background: #3a3a3a;
+    color: #e9e9e9;
+    padding: 0 12px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input::placeholder { color: #a3a3a3; }
+.input:focus {
+    border-color: #3388ff;
+    box-shadow: 0 0 0 3px rgba(51,136,255,0.25);
 }
 
+/* Sección de opciones (enlaces bajo inputs) */
 .options {
     display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    color: #555;
+    justify-content: flex-start;
+    font-size: 14px;
+    color: #7a7a7a;
+    margin-top: 2px;
 }
+.options a {
+    color: #7a7a7a;
+    text-decoration: none;
+}
+.options a:hover { text-decoration: underline; }
 
+/* Botón principal azul */
 .button {
-    background: #2563eb;
-    color: white;
+    width: 100%;
+    height: 42px;
     border: none;
-    padding: 0.7rem;
-    border-radius: 5px;
+    border-radius: 6px;
+    background: #2f6df6;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.4px;
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
+    transition: transform .06s ease, filter .2s ease, box-shadow .2s ease;
+    box-shadow: 0 8px 20px rgba(47,109,246,0.35);
 }
+.button:hover { filter: brightness(1.05); }
+.button:active { transform: translateY(1px); }
 
-.button:hover {
-    background: #1d4ed8;
-}
-
+/* Pie de la tarjeta */
 .footer {
-    margin-top: 1.5rem;
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.inp {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: #333;
-    cursor: pointer;
-}
-
-.inp input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-/* 🔹 Recuadro de carga de imagen */
-.dropzone {
-    border: 2px dashed #aaaaaa;
-    border-radius: 10px;
-    padding: 20px;
     text-align: center;
-    cursor: pointer;
-    margin-bottom: 1rem;
-    background: #fafafa;
-    transition: background 0.3s ease;
+    margin-top: 10px;
+    color: #9a9a9a;
+    font-size: 14px;
 }
+.footer a {
+    color: #8f8f8f;
+    text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
 
-.dropzone:hover {
-    background: #616161;
-}
-
-/* 🔹 Texto dentro del dropzone */
-.dropzoneText {
-    color: darkgrey;
-    font-size: 0.95rem;
-}
-
-/* 🔹 Preview de la imagen */
-.preview {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: 10px;
-    object-fit: cover;
-}
-
-.options:hover {
-    color: blue;
-    text-decoration: underline;
-}
+/* Pequeñas utilidades por si las usabas */
+.inp { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; color: #222; }
+.pto { width: 16px; height: 16px; }
