@@ -1,176 +1,168 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import styles from "@/app/Styles/Chats.module.css";
+import { useEffect, useMemo, useState } from "react";
+import { useSocket } from "@/hooks/useSocket";
+
+const API = "http://localhost:4000";
 
 export default function ChatsPage() {
-    const currentUserId = 1; // ⚠️ Cambiar luego por el usuario logueado
-
+    const [me, setMe] = useState(null);
     const [chats, setChats] = useState([]);
-    const [selectedChat, setSelectedChat] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState("");
-    const [search, setSearch] = useState("");
+    const [activeChat, setActiveChat] = useState(null);
+    const [mensajes, setMensajes] = useState([]);
+    const [texto, setTexto] = useState("");
 
-    // 🔹 Traer lista de chats
+    // socket con credenciales para la cookie de sesión
+    const { socket, isConnected } = useSocket({ withCredentials: true });
+
+    // cargar usuario y chats
     useEffect(() => {
-        const fetchChats = async () => {
-        try {
-            const res = await fetch(`/api/chats?userId=${currentUserId}`);
-            const data = await res.json();
-            setChats(data);
-        } catch (err) {
-            console.error("Error cargando chats:", err);
+        (async () => {
+        // quién soy
+        const r1 = await fetch(`${API}/me`, { credentials: "include" });
+        const d1 = await r1.json();
+        if (!d1.ok) {
+            // si no hay sesión, podrías redirigir a /Login
+            return;
         }
-        };
-        fetchChats();
+        setMe(d1.user);
+
+        // mis chats
+        const r2 = await fetch(`${API}/chats`, { credentials: "include" });
+        const d2 = await r2.json();
+        if (d2.ok) {
+            setChats(d2.chats);
+            if (d2.chats.length && !activeChat) {
+            setActiveChat(d2.chats[0].id_chat);
+            }
+        }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // 🔹 Traer mensajes cuando selecciono un chat
+    // cuando cambia el chat activo, cargo mensajes y me uno al room
     useEffect(() => {
-        if (!selectedChat) return;
-        const fetchMessages = async () => {
-        try {
-            const res = await fetch(`/api/chats/${selectedChat.id_chat}/mensajes`);
-            const data = await res.json();
-            setMessages(data);
-        } catch (err) {
-            console.error("Error cargando mensajes:", err);
+        if (!activeChat) return;
+
+        (async () => {
+        const r = await fetch(`${API}/chats/${activeChat}/mensajes`, {
+            credentials: "include",
+        });
+        const d = await r.json();
+        if (d.ok) setMensajes(d.mensajes);
+        })();
+
+        if (socket) socket.emit("joinChat", activeChat);
+    }, [activeChat, socket]);
+
+    // escuchar mensajes nuevos por socket
+    useEffect(() => {
+        if (!socket) return;
+
+        const handler = (msg) => {
+        // solo si pertenece al chat activo
+        if (Number(msg.id_chat) === Number(activeChat)) {
+            setMensajes((prev) => [...prev, msg]);
         }
         };
-        fetchMessages();
-    }, [selectedChat]);
 
-    // 🔹 Enviar mensaje
-    const handleSendMessage = async () => {
-        if (!newMessage.trim() || !selectedChat) return;
+        socket.on("nuevoMensaje", handler);
+        return () => socket.off("nuevoMensaje", handler);
+    }, [socket, activeChat]);
 
-        try {
-        await fetch(`/api/chats/${selectedChat.id_chat}/mensajes`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_usuario: currentUserId, texto: newMessage }),
+    const enviar = async (e) => {
+        e?.preventDefault?.();
+        if (!texto.trim() || !activeChat) return;
+
+        const r = await fetch(`${API}/chats/${activeChat}/mensajes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ texto }),
         });
-
-        setMessages([
-            ...messages,
-            {
-            texto: newMessage,
-            usuario: "Tú",
-            fecha_mensaje: new Date().toISOString(),
-            },
-        ]);
-        setNewMessage("");
-        } catch (err) {
-        console.error("Error enviando mensaje:", err);
+        const d = await r.json();
+        if (d.ok) {
+        setTexto("");
+        // el push visual lo hace el evento socket "nuevoMensaje"
+        } else {
+        alert(d.msg || "No se pudo enviar");
         }
     };
 
-    // 🔹 Filtrar chats por búsqueda
-    const filteredChats = chats.filter((chat) =>
-        chat.chat_name?.toLowerCase().includes(search.toLowerCase())
-    );
-
     return (
-        <div className={styles.container}>
-        {/* 📌 Sidebar */}
-        <div className={styles.sidebar}>
-            <input
-            type="text"
-            placeholder="Buscar Chat..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.search}
-            />
-
-            <div className={styles.chatList}>
-            {filteredChats.map((chat) => (
-                <div
-                key={chat.id_chat}
-                className={`${styles.chatItem} ${
-                    selectedChat?.id_chat === chat.id_chat ? styles.active : ""
-                }`}
-                onClick={() => setSelectedChat(chat)}
+        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", height: "100vh" }}>
+        {/* Lista de chats */}
+        <aside style={{ borderRight: "1px solid #eee", overflowY: "auto" }}>
+            <div style={{ padding: 12 }}>
+            <h2>Mis chats</h2>
+            <p style={{ fontSize: 12, opacity: 0.6 }}>
+                Socket: {isConnected ? "Conectado" : "Desconectado"}
+            </p>
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {chats.map((c) => (
+                <li
+                key={c.id_chat}
+                onClick={() => setActiveChat(c.id_chat)}
+                style={{
+                    padding: "10px 12px",
+                    cursor: "pointer",
+                    background: activeChat === c.id_chat ? "#f5f5f5" : "transparent",
+                    borderBottom: "1px solid #f0f0f0",
+                }}
                 >
-                <img
-                    src={chat.avatar || "/default-avatar.png"}
-                    alt="avatar"
-                    className={styles.avatar}
-                />
-                <div className={styles.chatInfo}>
-                    <span className={styles.chatName}>{chat.chat_name}</span>
-                    {chat.mail && (
-                    <span className={styles.chatMail}>{chat.mail}</span>
-                    )}
-                    {chat.phone && (
-                    <span className={styles.chatPhone}>{chat.phone}</span>
-                    )}
-                </div>
-                </div>
+                <div style={{ fontWeight: 600 }}>{c.nombre || `Chat ${c.id_chat}`}</div>
+                {c.es_grupo ? (
+                    <small>Grupo • {c.participantes ?? ""}</small>
+                ) : (
+                    <small>1 a 1</small>
+                )}
+                </li>
             ))}
-            </div>
-        </div>
+            {!chats.length && <li style={{ padding: 12 }}>No hay chats</li>}
+            </ul>
+        </aside>
 
-        {/* 📌 Área de chat */}
-        <div className={styles.chatArea}>
-            {selectedChat ? (
-            <>
-                <div className={styles.chatHeader}>
-                <div className={styles.headerInfo}>
-                    <span className={styles.headerName}>
-                    {selectedChat.chat_name}
-                    </span>
-                    {selectedChat.mail && (
-                    <span className={styles.headerMail}>
-                        {selectedChat.mail}
-                    </span>
-                    )}
-                    {selectedChat.phone && (
-                    <span className={styles.headerPhone}>
-                        {selectedChat.phone}
-                    </span>
-                    )}
-                </div>
-                <img
-                    src={selectedChat.avatar || "/default-avatar.png"}
-                    alt="avatar"
-                    className={styles.avatarHeader}
-                />
-                </div>
+        {/* Panel de mensajes */}
+        <section style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+            <header style={{ padding: 12, borderBottom: "1px solid #eee" }}>
+            <h3 style={{ margin: 0 }}>
+                {activeChat ? `Chat #${activeChat}` : "Selecciona un chat"}
+            </h3>
+            </header>
 
-                <div className={styles.chatBody}>
-                {messages.map((msg, idx) => (
-                    <div
-                    key={idx}
-                    className={`${styles.message} ${
-                        msg.usuario === "Tú"
-                        ? styles.messageSent
-                        : styles.messageReceived
-                    }`}
-                    >
-                    <strong>{msg.usuario}: </strong>
-                    {msg.texto}
+            <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
+            {activeChat ? (
+                mensajes.length ? (
+                mensajes.map((m) => (
+                    <div key={m.id_mensaje} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, opacity: 0.6 }}>
+                        {m.nombre ?? "Usuario"} — {new Date(m.fecha_mensaje).toLocaleString()}
                     </div>
-                ))}
-                </div>
-
-                <div className={styles.chatInput}>
-                <input
-                    type="text"
-                    placeholder="Escribir mensaje..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                />
-                <button onClick={handleSendMessage}>Enviar</button>
-                </div>
-            </>
+                    <div>{m.texto}</div>
+                    </div>
+                ))
+                ) : (
+                <p>Sin mensajes</p>
+                )
             ) : (
-            <div className={styles.noChatSelected}>
-                Selecciona un chat para comenzar
-            </div>
+                <p>Elegí un chat para ver los mensajes</p>
             )}
-        </div>
+            </div>
+
+            {/* Input enviar */}
+            {activeChat && (
+            <form onSubmit={enviar} style={{ display: "flex", gap: 8, padding: 12, borderTop: "1px solid #eee" }}>
+                <input
+                value={texto}
+                onChange={(e) => setTexto(e.target.value)}
+                placeholder="Escribe un mensaje..."
+                style={{ flex: 1 }}
+                />
+                <button type="submit">Enviar</button>
+            </form>
+            )}
+        </section>
         </div>
     );
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 
+// const { socket, isConnected } = useSocket({ withCredentials: true });
+
 const useSocket = (
   options = { withCredentials: false },
   serverUrl = "http://localhost:4000"

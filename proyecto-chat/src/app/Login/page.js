@@ -1,44 +1,64 @@
-"use client"
+"use client";
 
-import styles from "@/app/Styles/LoginRegister.module.css";
-import Head from "next/head";
-import Link from "next/link";
-import Button from "@/app/Components/Button.js"
-import Input from "@/app/Components/Input.js"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const API = "http://localhost:4000";
 
 export default function LoginPage() {
+  const [correo, setCorreo] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // importante para la cookie de sesión
+        body: JSON.stringify({ correo, contrasena }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        router.push("/Chats");
+      } else {
+        alert(data.msg || "Error de login");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error de red");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <>
-      <div className={styles.container}>
-        <div className={styles.card}>
-          <h1 className={styles.logo}>
-            <span className={styles.logoGreen1}>WAT</span>
-            <span className={styles.logoGreen2}>SAP</span>
-            <br />
-            <span className={styles.LogoBlack}>Iniciar Sesion</span>
-          </h1>
-
-          <form className={styles.form}>
-            <Input className={styles.input} type="text" placeholder="Username"/>
-            <Input className={styles.input} type="password" placeholder="Password"/>
-
-            <div className={styles.options}>
-              
-              <Link href="/Register">¿Has perdido tu contraseña?</Link>
-            </div>
-
-            <button type="submit" className={styles.button}>Siguiente . . .</button>
-
-          </form>
-          <label className="inp">
-              <Input className="pto" type="checkbox"/> Recuérdame
-          </label>
-
-          <p className={styles.footer}>
-            <Link href="/Register" >¿No tienes una cuenta? Regístrate</Link>
-          </p>
-        </div>
-      </div>
-    </>
+    <main style={{ maxWidth: 420, margin: "40px auto" }}>
+      <h1>Iniciar sesión</h1>
+      <form onSubmit={onSubmit}>
+        <input
+          type="email"
+          placeholder="Correo"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          required
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={contrasena}
+          onChange={(e) => setContrasena(e.target.value)}
+          required
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Ingresando..." : "Ingresar"}
+        </button>
+      </form>
+    </main>
   );
 }

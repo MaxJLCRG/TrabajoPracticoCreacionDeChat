@@ -1,50 +1,73 @@
-"use client"
+"use client";
 
-import styles from "@/app/Styles/LoginRegister.module.css";
-import Head from "next/head"
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
-return (
-    <>
-    <div>
-        <Head>
-        <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin></link>
-        <link href="https://fonts.googleapis.com/css2?family=Libertinus+Keyboard&display=swap" rel="stylesheet"></link>
-        </Head>
-    </div>
+const API = "http://localhost:4000";
 
-    <div className={styles.container}>
-        <div className={styles.card}>
-        <h1 className={styles.logo}>
-            <span className={styles.logoGreen1}>WAT</span>
-            <span className={styles.logoGreen2}>SAP</span>
-            <br></br>
-            <span className={styles.LogoBlack}>Registrate</span>
-        </h1>
+export default function RegisterPage() {
+    const [nombre, setNombre] = useState("");
+    const [correo, setCorreo] = useState("");
+    const [contrasena, setContrasena] = useState("");
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
 
-        <form className={styles.form}>
-            <input type="text" placeholder="Username" className={styles.input} />
-            <input type="password" placeholder="Password" className={styles.input} />
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+        const res = await fetch(`${API}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ nombre, correo, contrasena }),
+        });
+        const data = await res.json();
+        if (data.ok) {
+            router.push("/Chats");
+        } else {
+            alert(data.msg || "No se pudo registrar");
+        }
+        } catch (err) {
+        console.error(err);
+        alert("Error de red");
+        } finally {
+        setLoading(false);
+        }
+    };
 
-            <p style={{ letterSpacing: "1px", color: "darkgrey"}}>Confirma tus datos</p>
-
-            <input type="text" placeholder="Username" className={styles.input} />
-            <input type="password" placeholder="Password" className={styles.input} />
-
-            <div className={styles.options}>
-                <Link href="/Login">¿Ya tienes una cuenta? Inicia Sesion</Link>
-            </div>
-
-            <button type="submit" className={styles.button}>Siguiente . . .</button>
+    return (
+        <main style={{ maxWidth: 420, margin: "40px auto" }}>
+        <h1>Crear cuenta</h1>
+        <form onSubmit={onSubmit}>
+            <input
+            type="text"
+            placeholder="Nombre"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            required
+            style={{ display: "block", width: "100%", marginBottom: 12 }}
+            />
+            <input
+            type="email"
+            placeholder="Correo"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            required
+            style={{ display: "block", width: "100%", marginBottom: 12 }}
+            />
+            <input
+            type="password"
+            placeholder="Contraseña"
+            value={contrasena}
+            onChange={(e) => setContrasena(e.target.value)}
+            required
+            style={{ display: "block", width: "100%", marginBottom: 12 }}
+            />
+            <button type="submit" disabled={loading}>
+            {loading ? "Creando..." : "Registrarme"}
+            </button>
         </form>
-
-        <p className={styles.footer}>
-
-        </p>
-        </div>
-    </div>
-    </>
-        );
+        </main>
+    );
 }
