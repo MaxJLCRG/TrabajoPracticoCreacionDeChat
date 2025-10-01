@@ -4,15 +4,14 @@ const mySql = require("mysql2/promise");
 /**
  * Objeto con la configuración de la base de datos MySQL a utilizar.
  */
-const SQL_CONFIGURATION_DATA =
-{
-	host: process.env.MYSQL_HOST,
-	user: process.env.MYSQL_USERNAME,
-	password: process.env.MYSQL_PASSWORD, 
-	database: process.env.MYSQL_DB,	
-	port: 3306,
-	charset: 'UTF8_GENERAL_CI'
-}
+const SQL_CONFIGURATION_DATA = {
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USERNAME,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DB,
+  port: process.env.MYSQL_PORT || 3306,
+  charset: 'utf8mb4_general_ci'
+};
 
 /**
  * Realiza una query a la base de datos MySQL indicada en el archivo "mysql.js".
