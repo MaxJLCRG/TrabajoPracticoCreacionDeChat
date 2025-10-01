@@ -1,7 +1,7 @@
 // ====================================================================
-// index.js  |  Express + express-session + Socket.IO + MySQL (tablas *WPP)
+// index.js  |  Express + express-session + Socket.IO + MySQL (tablas WPP)
 // ====================================================================
-// Tablas esperadas (según tu DER con sufijo):
+// Tablas MySQL utilizadas:
 //   - UsuariosWPP(id_usuario, nombre, correo, contrasena, numero, foto_perfil)
 //   - ChatsWPP(id_chat, nombre, foto_grupo, es_grupo, participantes)
 //   - UsuariosPorChatWPP(id_usuario_chat, id_usuario, id_chat)
@@ -104,9 +104,10 @@ app.use(cors({
 		req.session.nombre = nombre;
 
 		res.json({ ok: true, user: { id_usuario, nombre, correo } });
+
 	} catch (err) {
-		console.error(err);
-		res.status(500).json({ ok: false, msg: "Error servidor" });
+		console.error("REGISTER ERROR:", err);  // ← imprime stack/código
+		res.status(500).json({ ok: false, msg: err.code || err.message || "Error servidor" });
 	}
 	});
 
@@ -128,9 +129,10 @@ app.use(cors({
 		req.session.nombre = user.nombre;
 
 		res.json({ ok: true, user: { id_usuario: user.id_usuario, nombre: user.nombre, correo } });
+		
 	} catch (err) {
-		console.error(err);
-		res.status(500).json({ ok: false, msg: "Error servidor" });
+		console.error("LOGIN ERROR:", err);
+		res.status(500).json({ ok: false, msg: err.code || err.message || "Error servidor" });
 	}
 	});
 
