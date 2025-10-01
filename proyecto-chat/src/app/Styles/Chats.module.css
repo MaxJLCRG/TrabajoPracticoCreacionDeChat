@@ -128,3 +128,57 @@
 }
 .sendBtn:hover { filter: brightness(1.05); }
 .sendBtn:active { transform: translateY(1px); }
+
+/* ==== Invite (añadir usuario por email) ==== */
+.inviteBar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+.inviteInput {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.inviteInput:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+}
+.inviteBtn {
+  min-width: 110px;
+  border: none;
+  border-radius: 8px;
+  background: #2f6df6;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+}
+.inviteBtn:hover { filter: brightness(1.05); }
+.inviteBtn:active { transform: translateY(1px); }
+
+/* ==== Search (filtrar chats por nombre) ==== */
+.searchBar {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+.searchInput {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.searchInput:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+}

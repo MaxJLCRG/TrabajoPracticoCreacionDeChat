@@ -26,7 +26,7 @@ app.use(cors({
 	}));
 	app.use(express.json());
 
-// Sesión (compartida con Socket.IO)
+// Sesión
 	const sessionMiddleware = session({
 	secret: "pandy",
 	resave: false,
@@ -146,6 +146,90 @@ app.use(cors({
 	if (!req.session.userId) return res.status(401).json({ ok: false });
 	res.json({ ok: true, user: { id_usuario: req.session.userId, nombre: req.session.nombre } });
 	});
+	
+// Invitar usuario por correo a un chat
+app.post("/chats/:id/invite", requireLogin, async (req, res) => {
+  try {
+    const idChat = Number(req.params.id);
+    const { correo } = req.body;
+    if (!Number.isFinite(idChat) || !correo?.trim()) {
+      return res.status(400).json({ ok: false, msg: "Datos inválidos" });
+    }
+
+    // 1) Verificar que el usuario que invita pertenece al chat
+    const pertenece = await realizarQuery(`
+      SELECT 1
+      FROM UsuariosPorChatWPP
+      WHERE id_usuario=${Number(req.session.userId)} AND id_chat=${idChat}
+      LIMIT 1
+    `);
+    if (!pertenece.length) {
+      return res.status(403).json({ ok: false, msg: "No perteneces a este chat" });
+    }
+
+    // 2) Buscar usuario por correo (o crearlo si no existe)
+    const q = (s="") => String(s).replace(/'/g, "''");
+    let user = await realizarQuery(`
+      SELECT id_usuario, nombre, correo
+      FROM UsuariosWPP
+      WHERE correo='${q(correo)}'
+      LIMIT 1
+    `);
+
+    if (!user.length) {
+      // Crear automáticamente un usuario básico
+      const nombre = q(correo.split("@")[0] || "usuario");
+      const randomPass = Math.random().toString(36).slice(2, 10);
+      const hash = await bcrypt.hash(randomPass, 10);
+
+      const insertU = await realizarQuery(`
+        INSERT INTO UsuariosWPP (nombre, correo, contrasena, numero, foto_perfil)
+        VALUES ('${nombre}', '${q(correo)}', '${q(hash)}', '', '')
+      `);
+      user = [{ id_usuario: insertU.insertId, nombre, correo }];
+    } else {
+      user = [user[0]];
+    }
+    const idInvitado = user[0].id_usuario;
+
+    // 3) Verificar si ya está en el chat
+    const yaEsta = await realizarQuery(`
+      SELECT 1
+      FROM UsuariosPorChatWPP
+      WHERE id_usuario=${idInvitado} AND id_chat=${idChat}
+      LIMIT 1
+    `);
+    if (yaEsta.length) {
+      return res.json({ ok: true, msg: "El usuario ya pertenece a este chat" });
+    }
+
+    // 4) Insertar relación
+    await realizarQuery(`
+      INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+      VALUES (${idInvitado}, ${idChat})
+    `);
+
+    // 5) (Opcional) Actualizar contador de participantes si usas ese campo
+    await realizarQuery(`
+      UPDATE ChatsWPP
+      SET participantes = COALESCE(participantes, 0) + 1
+      WHERE id_chat = ${idChat}
+    `);
+
+    // 6) Notificar por socket a los miembros del chat (opcional)
+    io.to(`chat:${idChat}`).emit("usuarioInvitado", {
+      id_chat: idChat,
+      id_usuario: idInvitado,
+      correo: user[0].correo,
+      nombre: user[0].nombre,
+    });
+
+    res.json({ ok: true, msg: "Invitación realizada", invitado: user[0] });
+  } catch (err) {
+    console.error("INVITE ERROR:", err);
+    res.status(500).json({ ok: false, msg: err.code || err.message || "Error servidor" });
+  }
+});
 
 // ====================================================================
 // Chats & Mensajes
