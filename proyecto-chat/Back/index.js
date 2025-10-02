@@ -16,6 +16,20 @@ const cors = require("cors");
 const session = require("express-session");
 const http = require("http");
 const { realizarQuery } = require("./modulos/mysql");
+const path = require("path");
+const multer = require("multer");
+
+app.use("/public", express.static(path.join(__dirname, "public"))); // Esto es de los Avatares, posta que no lo entiendo... me rendí de esto igual :)
+
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => cb(null, path.join(__dirname, "public", "avatars")),
+	filename: (req, file, cb) => {
+		const ext = path.extname(file.originalname || ".png");
+		cb(null, `u${req.session.userId || "guest"}_${Date.now()}${ext}`);
+	},
+});
+const upload = multer({ storage });
+
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -27,7 +41,7 @@ app.use(cors({
 	app.use(express.json());
 
 // Sesión
-	const sessionMiddleware = session({
+	const sessionleware = session({
 	secret: "pandy",
 	resave: false,
 	saveUninitialized: false,
@@ -149,86 +163,86 @@ app.use(cors({
 	
 // Invitar usuario por correo a un chat
 app.post("/chats/:id/invite", requireLogin, async (req, res) => {
-  try {
+	try {
     const idChat = Number(req.params.id);
     const { correo } = req.body;
     if (!Number.isFinite(idChat) || !correo?.trim()) {
-      return res.status(400).json({ ok: false, msg: "Datos inválidos" });
+		return res.status(400).json({ ok: false, msg: "Datos inválidos" });
     }
 
     // 1) Verificar que el usuario que invita pertenece al chat
     const pertenece = await realizarQuery(`
-      SELECT 1
-      FROM UsuariosPorChatWPP
-      WHERE id_usuario=${Number(req.session.userId)} AND id_chat=${idChat}
-      LIMIT 1
+		SELECT 1
+		FROM UsuariosPorChatWPP
+		WHERE id_usuario=${Number(req.session.userId)} AND id_chat=${idChat}
+		LIMIT 1
     `);
     if (!pertenece.length) {
-      return res.status(403).json({ ok: false, msg: "No perteneces a este chat" });
+		return res.status(403).json({ ok: false, msg: "No perteneces a este chat" });
     }
 
     // 2) Buscar usuario por correo (o crearlo si no existe)
     const q = (s="") => String(s).replace(/'/g, "''");
     let user = await realizarQuery(`
-      SELECT id_usuario, nombre, correo
-      FROM UsuariosWPP
-      WHERE correo='${q(correo)}'
-      LIMIT 1
+		SELECT id_usuario, nombre, correo
+		FROM UsuariosWPP
+		WHERE correo='${q(correo)}'
+		LIMIT 1
     `);
 
     if (!user.length) {
       // Crear automáticamente un usuario básico
-      const nombre = q(correo.split("@")[0] || "usuario");
-      const randomPass = Math.random().toString(36).slice(2, 10);
-      const hash = await bcrypt.hash(randomPass, 10);
+		const nombre = q(correo.split("@")[0] || "usuario");
+		const randomPass = Math.random().toString(36).slice(2, 10);
+		const hash = await bcrypt.hash(randomPass, 10);
 
-      const insertU = await realizarQuery(`
+		const insertU = await realizarQuery(`
         INSERT INTO UsuariosWPP (nombre, correo, contrasena, numero, foto_perfil)
         VALUES ('${nombre}', '${q(correo)}', '${q(hash)}', '', '')
-      `);
-      user = [{ id_usuario: insertU.insertId, nombre, correo }];
+		`);
+		user = [{ id_usuario: insertU.insertId, nombre, correo }];
     } else {
-      user = [user[0]];
+		user = [user[0]];
     }
     const idInvitado = user[0].id_usuario;
 
     // 3) Verificar si ya está en el chat
     const yaEsta = await realizarQuery(`
-      SELECT 1
-      FROM UsuariosPorChatWPP
-      WHERE id_usuario=${idInvitado} AND id_chat=${idChat}
-      LIMIT 1
+		SELECT 1
+		FROM UsuariosPorChatWPP
+		WHERE id_usuario=${idInvitado} AND id_chat=${idChat}
+		LIMIT 1
     `);
     if (yaEsta.length) {
-      return res.json({ ok: true, msg: "El usuario ya pertenece a este chat" });
+		return res.json({ ok: true, msg: "El usuario ya pertenece a este chat" });
     }
 
     // 4) Insertar relación
     await realizarQuery(`
-      INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
-      VALUES (${idInvitado}, ${idChat})
+		INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+		VALUES (${idInvitado}, ${idChat})
     `);
 
     // 5) (Opcional) Actualizar contador de participantes si usas ese campo
     await realizarQuery(`
-      UPDATE ChatsWPP
-      SET participantes = COALESCE(participantes, 0) + 1
-      WHERE id_chat = ${idChat}
+		UPDATE ChatsWPP
+		SET participantes = COALESCE(participantes, 0) + 1
+		WHERE id_chat = ${idChat}
     `);
 
     // 6) Notificar por socket a los miembros del chat (opcional)
     io.to(`chat:${idChat}`).emit("usuarioInvitado", {
-      id_chat: idChat,
-      id_usuario: idInvitado,
-      correo: user[0].correo,
-      nombre: user[0].nombre,
+		id_chat: idChat,
+		id_usuario: idInvitado,
+		correo: user[0].correo,
+		nombre: user[0].nombre,
     });
 
     res.json({ ok: true, msg: "Invitación realizada", invitado: user[0] });
-  } catch (err) {
+	} catch (err) {
     console.error("INVITE ERROR:", err);
     res.status(500).json({ ok: false, msg: err.code || err.message || "Error servidor" });
-  }
+	}
 });
 
 // ====================================================================
@@ -254,6 +268,108 @@ app.post("/chats/:id/invite", requireLogin, async (req, res) => {
 		res.status(500).json({ ok: false, msg: "Error servidor" });
 	}
 	});
+
+// Crear un chat de grupo con participantes por correo
+	app.post("/chats", requireLogin, async (req, res) => {
+	try {
+		const { nombre, correos = [], foto_grupo = "" } = req.body;
+		const idCreador = Number(req.session.userId);
+
+		const norm = (arr) =>
+		(Array.isArray(arr) ? arr : String(arr || ""))
+			.split(/[,\s;]+/)
+			.map((s) => s.trim().toLowerCase())
+			.filter(Boolean);
+
+		const emails = norm(correos);
+		if (!nombre?.trim()) return res.status(400).json({ ok: false, msg: "Falta nombre del grupo" });
+
+		// 1) Crear chat
+		const insertChat = await realizarQuery(`
+		INSERT INTO ChatsWPP (nombre, foto_grupo, es_grupo, participantes)
+		VALUES ('${q(nombre)}', '${q(foto_grupo)}', 1, 0)
+		`);
+		const id_chat = insertChat.insertId;
+
+		// 2) Agregar creador al chat (si no estuviera)
+		await realizarQuery(`
+		INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+		SELECT ${idCreador}, ${id_chat}
+		WHERE NOT EXISTS (
+			SELECT 1 FROM UsuariosPorChatWPP
+			WHERE id_usuario=${idCreador} AND id_chat=${id_chat}
+		)
+		`);
+
+		// 3) Resolver/crear usuarios por correo y agregarlos
+		const invitados = [];
+		for (const correo of emails) {
+		// ¿existe?
+		let u = await realizarQuery(`
+			SELECT id_usuario, nombre, correo
+			FROM UsuariosWPP
+			WHERE correo='${q(correo)}'
+			LIMIT 1
+		`);
+
+		if (!u.length) {
+			// crea usuario básico
+			const nombreAuto = q(correo.split("@")[0] || "usuario");
+			const randomPass = Math.random().toString(36).slice(2, 10);
+			const hash = await bcrypt.hash(randomPass, 10);
+			const insU = await realizarQuery(`
+			INSERT INTO UsuariosWPP (nombre, correo, contrasena, numero, foto_perfil)
+			VALUES ('${nombreAuto}', '${q(correo)}', '${q(hash)}', '', '')
+			`);
+			u = [{ id_usuario: insU.insertId, nombre: nombreAuto, correo }];
+		} else {
+			u = [u[0]];
+		}
+
+		const idInv = u[0].id_usuario;
+
+		// relación (evitar duplicados)
+		await realizarQuery(`
+			INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+			SELECT ${idInv}, ${id_chat}
+			WHERE NOT EXISTS (
+			SELECT 1 FROM UsuariosPorChatWPP
+			WHERE id_usuario=${idInv} AND id_chat=${id_chat}
+			)
+		`);
+
+		invitados.push({ id_usuario: idInv, correo: u[0].correo, nombre: u[0].nombre });
+		}
+
+		// 4) Actualizar contador de participantes (opcional)
+		const countRows = await realizarQuery(`
+		SELECT COUNT(*) AS total FROM UsuariosPorChatWPP WHERE id_chat=${id_chat}
+		`);
+		const participantes = countRows[0]?.total ?? 0;
+		await realizarQuery(`
+		UPDATE ChatsWPP SET participantes=${participantes} WHERE id_chat=${id_chat}
+		`);
+
+		// 5) Notificación por socket (opcional, broadcast simple)
+		io.emit("chatCreado", {
+		id_chat,
+		nombre,
+		es_grupo: 1,
+		participantes,
+		foto_grupo,
+		});
+
+		return res.json({
+		ok: true,
+		chat: { id_chat, nombre, es_grupo: 1, participantes, foto_grupo },
+		invitados,
+		});
+	} catch (err) {
+		console.error("CREAR CHAT ERROR:", err);
+		return res.status(500).json({ ok: false, msg: err.code || err.message || "Error servidor" });
+	}
+	});
+
 
 // Mensajes de un chat
 	app.get("/chats/:id/mensajes", requireLogin, async (req, res) => {

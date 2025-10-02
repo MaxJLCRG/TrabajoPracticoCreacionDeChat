@@ -1,4 +1,17 @@
-/* Layout general: sidebar + panel de mensajes */
+/* =========================================================
+    CHATS Styles
+    Secciones:
+    1) Layout general
+    2) Sidebar (estructura, header, search, lista, footer)
+    3) Panel de conversación
+    4) Lista de mensajes
+    5) Composer (input + botón de enviar)
+    6) Invite (añadir usuario por email)
+    7) Crear Grupo (btn)
+    8) Logout (botón + modal)
+   ========================================================= */
+
+/* ========== 1) Layout general ========== */
 .wrapper {
   height: 100vh;
   width: 100%;
@@ -7,16 +20,18 @@
   background: #f8f9fb;
 }
 
-/* Sidebar (lista de chats) */
+/* ========== 2) Sidebar ========== */
 .sidebar {
-  border-right: 1px solid #eeeeee;
-  background: #fafafa;
+  border-right: 1px solid #202020;
+  background: #202020;
   display: flex;
   flex-direction: column;
 }
+
+/* Sidebar: Header */
 .sidebarHeader {
   padding: 12px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #202020;
 }
 .sidebarTitle {
   margin: 0;
@@ -26,8 +41,30 @@
 .socketState {
   margin: 2px 0 0 0;
   font-size: 12px;
-  color: #7e7e7e;
+  color: #8f8e8e;
 }
+
+/* Sidebar: Search */
+.searchBar {
+  padding: 10px 12px;
+  border-bottom: 1px solid #202020;
+  background: #202020;
+}
+.searchInput {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.searchInput:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+}
+
+/* Sidebar: Lista de chats */
 .chatList {
   list-style: none;
   padding: 0;
@@ -37,23 +74,33 @@
 .chatItem {
   padding: 10px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #202020;
   transition: background .15s ease;
 }
-.chatItem:hover { background: #f3f6fb; }
-.chatItemActive { background: #e9f0ff; }
+.chatItem:hover { background: #119764; }
+.chatItemActive { background: #03b654; }
 .chatTitle { font-weight: 700; }
-.chatMeta  { font-size: 12px; color: #7b7b7b; }
+.chatMeta  { font-size: 12px; color: #943030; }
 
-/* Panel de conversación */
+/* Sidebar: Footer (logout) */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid #202020;
+  background: #202020;
+  display: flex;
+  justify-content: right;
+}
+
+/* ========== 3) Panel de conversación ========== */
 .panel {
   display: flex;
   flex-direction: column;
 }
 .panelHeader {
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  background: #fff;
+  border-bottom: 1px solid #6b6b6b;
+  background: #6b6b6b;
 }
 .panelTitle {
   margin: 0;
@@ -61,12 +108,14 @@
   font-size: 18px;
 }
 
-/* Lista de mensajes */
+/* ========== 4) Lista de mensajes ========== */
 .messages {
   flex: 1;
   overflow-y: auto;
   padding: 14px 14px 8px;
-  background: #ffffff;
+  background-image: url('../../../public/FondoChat.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 .msg {
   margin-bottom: 10px;
@@ -86,16 +135,16 @@
   display: inline-block;
   color: #222;
 }
-.msgSelf .msgBubble {
-  background: #62e06e;
-  color: #0c3a0f;
-}
 .msgSelf {
   margin-left: auto;
   text-align: right;
 }
+.msgSelf .msgBubble {
+  background: #62e06e;
+  color: #0c3a0f;
+}
 
-/* Composer (input + botón) */
+/* ========== 5) Composer (input + botón enviar) ========== */
 .composer {
   border-top: 1px solid #eee;
   background: #fff;
@@ -103,7 +152,12 @@
   display: flex;
   gap: 8px;
 }
-.composer input[type="text"], .composer input[type="search"], .composer input[type="email"], .composer input[type="password"], .composer input[type="tel"], .composer input[type="url"] {
+.composer input[type="text"],
+.composer input[type="search"],
+.composer input[type="email"],
+.composer input[type="password"],
+.composer input[type="tel"],
+.composer input[type="url"] {
   flex: 1;
   height: 40px;
   border-radius: 10px;
@@ -129,13 +183,13 @@
 .sendBtn:hover { filter: brightness(1.05); }
 .sendBtn:active { transform: translateY(1px); }
 
-/* ==== Invite (añadir usuario por email) ==== */
+/* ========== 6) Invite (añadir usuario por email) ========== */
 .inviteBar {
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  background: #fff;
+  border-bottom: 1px solid #202020;
+  background: #202020;
 }
 .inviteInput {
   flex: 1;
@@ -163,22 +217,96 @@
 .inviteBtn:hover { filter: brightness(1.05); }
 .inviteBtn:active { transform: translateY(1px); }
 
-/* ==== Search (filtrar chats por nombre) ==== */
-.searchBar {
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  background: #fff;
+/* ========== 7) Crear Grupo ========== */
+
+/* Botón para crear grupo */
+.createGroupBtn {
+  display: block;
+  margin: 12px auto; 
+  padding: 12px 20px; 
+  width: 80%; 
+  text-align: center;
+  border: none;
+  border-radius: 12px;
+  background: #2f6df6;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+  box-shadow: 0 4px 12px rgba(47,109,246,0.35);
 }
-.searchInput {
-  width: 100%;
-  height: 36px;
+.createGroupBtn:hover {
+  filter: brightness(1.08);
+}
+.createGroupBtn:active {
+  transform: translateY(1px);
+}
+
+/* ========== 8) Logout (botón + modal) ========== */
+.logoutBtn {
+  margin-left: auto;
+  padding: 8px 12px;
+  border: none;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  padding: 0 10px;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
 }
-.searchInput:focus {
-  border-color: #2f6df6;
-  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+.logoutBtn:hover { filter: brightness(1.05); }
+.logoutBtn:active { transform: translateY(1px); }
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 18, 40, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
 }
+.modal {
+  width: min(92vw, 420px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  padding: 20px 18px 16px;
+}
+.modalTitle {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.modalText {
+  margin: 0 0 16px 0;
+  color: #5b5b5b;
+}
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.modalCancel,
+.modalConfirm {
+  min-width: 110px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+}
+.modalCancel {
+  background: #e5e7eb;
+  color: #111827;
+}
+.modalConfirm {
+  background: #ef4444;
+  color: #fff;
+}
+.modalCancel:hover,
+.modalConfirm:hover { filter: brightness(1.05); }
+.modalCancel:active,
+.modalConfirm:active { transform: translateY(1px); }  
