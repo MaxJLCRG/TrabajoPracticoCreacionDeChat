@@ -1,50 +1,92 @@
-"use client"
+// src/app/Register/page.js
+"use client";
 
+/* =========================================================
+REGISTER Page
+========================================================= */
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "@/app/Styles/LoginRegister.module.css";
-import Head from "next/head"
-import Link from "next/link";
 
-export default function LoginPage() {
-return (
-    <>
-    <div>
-        <Head>
-        <link rel="preconnect" href="https://fonts.googleapis.com"></link>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin></link>
-        <link href="https://fonts.googleapis.com/css2?family=Libertinus+Keyboard&display=swap" rel="stylesheet"></link>
-        </Head>
-    </div>
+const API = "http://localhost:4000";
 
-    <div className={styles.container}>
+export default function RegisterPage() {
+    const router = useRouter();
+    const [nombre, setNombre] = useState("");
+    const [correo, setCorreo] = useState("");
+    const [contrasena, setContrasena] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    async function onSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+        try {
+        const res = await fetch(`${API}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ nombre, correo, contrasena }),
+        });
+        if (!res.ok) {
+            const msg =
+            res.status === 409 ? "El correo ya está registrado" : "Error servidor (register)";
+            alert(msg);
+            return;
+        }
+        router.push("/Chats");
+        } catch (err) {
+        console.error(err);
+        alert("Error servidor (register)");
+        } finally {
+        setLoading(false);
+        }
+    }
+
+    return (
+        <div className={styles.container}>
         <div className={styles.card}>
-        <h1 className={styles.logo}>
+            <h1 className={styles.logo}>
             <span className={styles.logoGreen1}>WAT</span>
-            <span className={styles.logoGreen2}>SAP</span>
-            <br></br>
-            <span className={styles.LogoBlack}>Registrate</span>
-        </h1>
+            <span className={styles.logoGreen2}>SAP</span>{" "}
+            <span className={styles.LogoBlack}>Regístrate</span>
+            </h1>
 
-        <form className={styles.form}>
-            <input type="text" placeholder="Username" className={styles.input} />
-            <input type="password" placeholder="Password" className={styles.input} />
+            <form className={styles.form} onSubmit={onSubmit}>
+            <input
+                className={styles.input}
+                type="text"
+                placeholder="Nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+            />
+            <input
+                className={styles.input}
+                type="email"
+                placeholder="Correo"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                required
+            />
+            <input
+                className={styles.input}
+                type="password"
+                placeholder="Contraseña"
+                value={contrasena}
+                onChange={(e) => setContrasena(e.target.value)}
+                required
+            />
 
-            <p style={{ letterSpacing: "1px", color: "darkgrey"}}>Confirma tus datos</p>
+            <button className={styles.button} type="submit" disabled={loading}>
+                {loading ? "Creando..." : "¡Regístrate!"}
+            </button>
+            </form>
 
-            <input type="text" placeholder="Username" className={styles.input} />
-            <input type="password" placeholder="Password" className={styles.input} />
-
-            <div className={styles.options}>
-                <Link href="/Login">¿Ya tienes una cuenta? Inicia Sesion</Link>
+            <div className={styles.footer}>
+            ¿Ya tienes una cuenta? <a href="/Login">Inicia Sesión</a>
             </div>
-
-            <button type="submit" className={styles.button}>Siguiente . . .</button>
-        </form>
-
-        <p className={styles.footer}>
-
-        </p>
         </div>
-    </div>
-    </>
-        );
+        </div>
+    );
 }

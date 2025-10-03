@@ -1,165 +1,312 @@
-.container {
-    display: flex;
-    height: 100vh;
-    background-color: #f5f5f5;
+/* =========================================================
+    CHATS Styles
+    Secciones:
+    1) Layout general
+    2) Sidebar (estructura, header, search, lista, footer)
+    3) Panel de conversación
+    4) Lista de mensajes
+    5) Composer (input + botón de enviar)
+    6) Invite (añadir usuario por email)
+    7) Crear Grupo (btn)
+    8) Logout (botón + modal)
+   ========================================================= */
+
+/* ========== 1) Layout general ========== */
+.wrapper {
+  height: 100vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  background: #f8f9fb;
 }
 
-/* ---------- Sidebar ---------- */
+/* ========== 2) Sidebar ========== */
 .sidebar {
-    width: 30%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 1) 20%, rgba(182, 182, 182, 1) 80%);
-    display: flex;
-    flex-direction: column;
+  border-right: 1px solid #202020;
+  background: #202020;
+  display: flex;
+  flex-direction: column;
 }
 
-.search {
-    padding: 10px;
+/* Sidebar: Header */
+.sidebarHeader {
+  padding: 12px;
+  border-bottom: 1px solid #202020;
+}
+.sidebarTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.socketState {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #8f8e8e;
 }
 
-.search input {
-    width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+/* Sidebar: Search */
+.searchBar {
+  padding: 10px 12px;
+  border-bottom: 1px solid #202020;
+  background: #202020;
+}
+.searchInput {
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.searchInput:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
 }
 
+/* Sidebar: Lista de chats */
 .chatList {
-    flex: 1;
-    overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
 }
-
 .chatItem {
-    padding: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #202020;
+  transition: background .15s ease;
+}
+.chatItem:hover { background: #119764; }
+.chatItemActive { background: #03b654; }
+.chatTitle { font-weight: 700; }
+.chatMeta  { font-size: 12px; color: #943030; }
+
+/* Sidebar: Footer (logout) */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid #202020;
+  background: #202020;
+  display: flex;
+  justify-content: right;
 }
 
-.chatItem:hover {
-    background: linear-gradient(180deg, rgb(120, 207, 158) 3%, rgb(72, 180, 161) 52%);
+/* ========== 3) Panel de conversación ========== */
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+.panelHeader {
+  padding: 12px;
+  border-bottom: 1px solid #6b6b6b;
+  background: #6b6b6b;
+}
+.panelTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
 }
 
-/* Texto de la lista de chats */
-.textSidebar {
-    color: #222; /* Cambiá este color para personalizar */
+/* ========== 4) Lista de mensajes ========== */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 8px;
+  background-image: url('../../../public/FondoChat.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.msg {
+  margin-bottom: 10px;
+  max-width: 64%;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.msgHead {
+  font-size: 12px;
+  color: #8a8a8a;
+  margin-bottom: 3px;
+}
+.msgBubble {
+  background: #f2f2f2;
+  padding: 10px 12px;
+  border-radius: 12px;
+  display: inline-block;
+  color: #222;
+}
+.msgSelf {
+  margin-left: auto;
+  text-align: right;
+}
+.msgSelf .msgBubble {
+  background: #62e06e;
+  color: #0c3a0f;
 }
 
-.active {
-        background: linear-gradient(180deg, rgb(130, 224, 171) 3%, rgb(83, 207, 185) 52%);
+/* ========== 5) Composer (input + botón enviar) ========== */
+.composer {
+  border-top: 1px solid #eee;
+  background: #fff;
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+}
+.composer input[type="text"],
+.composer input[type="search"],
+.composer input[type="email"],
+.composer input[type="password"],
+.composer input[type="tel"],
+.composer input[type="url"] {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #d8d8d8;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.composer input:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+}
+.sendBtn {
+  min-width: 96px;
+  border: none;
+  border-radius: 10px;
+  background: #2f6df6;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+}
+.sendBtn:hover { filter: brightness(1.05); }
+.sendBtn:active { transform: translateY(1px); }
 
+/* ========== 6) Invite (añadir usuario por email) ========== */
+.inviteBar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid #202020;
+  background: #202020;
+}
+.inviteInput {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 0 10px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.inviteInput:focus {
+  border-color: #2f6df6;
+  box-shadow: 0 0 0 3px rgba(47,109,246,0.18);
+}
+.inviteBtn {
+  min-width: 110px;
+  border: none;
+  border-radius: 8px;
+  background: #2f6df6;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+}
+.inviteBtn:hover { filter: brightness(1.05); }
+.inviteBtn:active { transform: translateY(1px); }
+
+/* ========== 7) Crear Grupo ========== */
+
+/* Botón para crear grupo */
+.createGroupBtn {
+  display: block;
+  margin: 12px auto; 
+  padding: 12px 20px; 
+  width: 80%; 
+  text-align: center;
+  border: none;
+  border-radius: 12px;
+  background: #2f6df6;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
+  box-shadow: 0 4px 12px rgba(47,109,246,0.35);
+}
+.createGroupBtn:hover {
+  filter: brightness(1.08);
+}
+.createGroupBtn:active {
+  transform: translateY(1px);
 }
 
-/* ---------- Imagenes del nombre ---------- */
-
-/* Imagen en la lista de chats */
-.avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    margin-right: 10px;
-    vertical-align: middle;
+/* ========== 8) Logout (botón + modal) ========== */
+.logoutBtn {
+  margin-left: auto;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
 }
+.logoutBtn:hover { filter: brightness(1.05); }
+.logoutBtn:active { transform: translateY(1px); }
 
-/* Imagen en el header del chat */
-.avatarHeader {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-    vertical-align: middle;
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 18, 40, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
 }
-
-/* Ajustar item para que acomode avatar + texto */
-.chatItem {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
+.modal {
+  width: min(92vw, 420px);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  padding: 20px 18px 16px;
 }
-
-
-/* ---------- Chat principal ---------- */
-.chatArea {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+.modalTitle {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 800;
 }
-
-.chatHeader {
-    padding: 15px;
-    background: linear-gradient(82deg, rgba(255, 255, 255, 1) 65%, rgba(182, 182, 182, 1) 100%);
-    font-weight: bold;
+.modalText {
+  margin: 0 0 16px 0;
+  color: #5b5b5b;
 }
-
-/* Texto del header del chat */
-.textHeader {
-    color: #000; /* Cambiá este color para personalizar */
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
-
-.chatBody {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    background: linear-gradient(180deg, rgba(65, 145, 99, 1) 3%, rgba(34, 138, 117, 1) 52%);
+.modalCancel,
+.modalConfirm {
+  min-width: 110px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .06s ease;
 }
-
-/* Mensajes */
-.message {
-    max-width: 60%;
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    word-wrap: break-word;
+.modalCancel {
+  background: #e5e7eb;
+  color: #111827;
 }
-
-/* Mensajes enviados */
-.messageSent {
-    background-color: #dcf8c6; /* Verde claro estilo WhatsApp */
-    align-self: flex-end;
-    color: #000;
+.modalConfirm {
+  background: #ef4444;
+  color: #fff;
 }
-
-/* Mensajes recibidos */
-.messageReceived {
-    background-color: #fff;
-    align-self: flex-start;
-    border: 1px solid #ddd;
-    color: #000;
-}
-
-.chatInput {
-    display: flex;
-    padding: 10px;
-    background: #fff;
-}
-
-.chatInput input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-}
-
-.chatInput button {
-    margin-left: 10px;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    background: #4caf50;
-    color: white;
-    cursor: pointer;
-}
-
-.chatInput button:hover {
-    background: #43a084;
-}
-
-/* Botón de agregar usuario */
-.addUserButton {
-    margin: 10px;
-    padding: 10px;
-    background: #2196f3;
-    color: white;
-}
+.modalCancel:hover,
+.modalConfirm:hover { filter: brightness(1.05); }
+.modalCancel:active,
+.modalConfirm:active { transform: translateY(1px); }  
