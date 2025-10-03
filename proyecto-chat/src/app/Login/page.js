@@ -1,4 +1,9 @@
+// src/app/Login/page.js
 "use client";
+
+/* =========================================================
+  LOGIN Page
+   ========================================================= */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -7,12 +12,12 @@ import styles from "@/app/Styles/LoginRegister.module.css";
 const API = "http://localhost:4000";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
-  const onSubmit = async (e) => {
+  async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
     try {
@@ -22,21 +27,27 @@ export default function LoginPage() {
         credentials: "include",
         body: JSON.stringify({ correo, contrasena }),
       });
-      const data = await res.json();
-      if (data.ok) router.push("/Chats");
-      else alert(data.msg || "Error al iniciar sesión");
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        alert(`Credenciales inválidas\n${txt}`);
+        return;
+      }
+      router.push("/Chats");
+    } catch (err) {
+      console.error(err);
+      alert("Error servidor (login)");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.card}>
         <h1 className={styles.logo}>
           <span className={styles.logoGreen1}>WAT</span>
-          <span className={styles.logoGreen2}>SAP</span><br />
-          <span className={styles.LogoBlack}>Iniciar Sesion</span>
+          <span className={styles.logoGreen2}>SAP</span>{" "}
+          <span className={styles.LogoBlack}>Iniciar Sesión</span>
         </h1>
 
         <form className={styles.form} onSubmit={onSubmit}>
@@ -57,19 +68,20 @@ export default function LoginPage() {
             required
           />
 
-          <div className={styles.options}>¿Has perdido tu contraseña?</div>
-          <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? "Ingresando..." : "Siguiente . . ."}
-          </button>
+          <div className={styles.options}>
+            <a href="#" onClick={(e) => e.preventDefault()}>
+              ¿Has perdido tu contraseña?
+            </a>
+          </div>
 
-          <label className={styles.inp}>
-            <input className={styles.pto} type="checkbox" /> Recuérdame
-          </label>
+          <button className={styles.button} type="submit" disabled={loading}>
+            {loading ? "Ingresando..." : "Siguiente..."}
+          </button>
         </form>
 
-        <p className={styles.footer}>
+        <div className={styles.footer}>
           ¿No tienes una cuenta? <a href="/Register">Regístrate</a>
-        </p>
+        </div>
       </div>
     </div>
   );

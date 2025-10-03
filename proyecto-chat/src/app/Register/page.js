@@ -1,4 +1,9 @@
+// src/app/Register/page.js
 "use client";
+
+/* =========================================================
+    REGISTER Page
+   ========================================================= */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -7,13 +12,13 @@ import styles from "@/app/Styles/LoginRegister.module.css";
 const API = "http://localhost:4000";
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [nombre, setNombre] = useState("");
     const [correo, setCorreo] = useState("");
     const [contrasena, setContrasena] = useState("");
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
 
-    const onSubmit = async (e) => {
+    async function onSubmit(e) {
         e.preventDefault();
         setLoading(true);
         try {
@@ -23,21 +28,28 @@ export default function RegisterPage() {
             credentials: "include",
             body: JSON.stringify({ nombre, correo, contrasena }),
         });
-        const data = await res.json();
-        if (data.ok) router.push("/Chats");
-        else alert(data.msg || "No se pudo registrar");
+        if (!res.ok) {
+            const msg =
+            res.status === 409 ? "El correo ya está registrado" : "Error servidor (register)";
+            alert(msg);
+            return;
+        }
+        router.push("/Chats");
+        } catch (err) {
+        console.error(err);
+        alert("Error servidor (register)");
         } finally {
         setLoading(false);
         }
-    };
+    }
 
     return (
         <div className={styles.container}>
         <div className={styles.card}>
             <h1 className={styles.logo}>
             <span className={styles.logoGreen1}>WAT</span>
-            <span className={styles.logoGreen2}>SAP</span><br />
-            <span className={styles.LogoBlack}>Registrate</span>
+            <span className={styles.logoGreen2}>SAP</span>{" "}
+            <span className={styles.LogoBlack}>Regístrate</span>
             </h1>
 
             <form className={styles.form} onSubmit={onSubmit}>
@@ -66,15 +78,14 @@ export default function RegisterPage() {
                 required
             />
 
-            <div className={styles.options}>Confirma tus datos</div>
             <button className={styles.button} type="submit" disabled={loading}>
-                {loading ? "Creando..." : "Siguiente . . ."}
+                {loading ? "Creando..." : "¡Regístrate!"}
             </button>
             </form>
 
-            <p className={styles.footer}>
+            <div className={styles.footer}>
             ¿Ya tienes una cuenta? <a href="/Login">Inicia Sesión</a>
-            </p>
+            </div>
         </div>
         </div>
     );

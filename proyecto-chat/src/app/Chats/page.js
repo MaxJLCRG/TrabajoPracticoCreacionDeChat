@@ -1,15 +1,26 @@
+// src/app/Chats/page.js
 "use client";
+
+/* =========================================================
+   CHATS Page (frontend)
+   - Lista tus chats
+   - Abre chat y trae mensajes
+   - Envía mensajes
+   - Crea grupos e invita por correo
+   ========================================================= */
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/app/Styles/Chats.module.css";
 import { useSocket } from "@/hooks/useSocket";
 
+// Ajusta si usas otro puerto
 const API = "http://localhost:4000";
 
 export default function ChatsPage() {
   const router = useRouter();
 
+  // Estado
   const [me, setMe] = useState(null);
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
@@ -20,11 +31,11 @@ export default function ChatsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Create Group modal
+  // Crear grupo
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const [groupEmails, setGroupEmails] = useState(""); // separados por coma/espacio
+  const [groupEmails, setGroupEmails] = useState("");
 
   // Logout modal
   const [showLogout, setShowLogout] = useState(false);
@@ -32,15 +43,20 @@ export default function ChatsPage() {
 
   const { socket, isConnected } = useSocket();
 
+  // ─────────────────────────────────────────────────────────
+  // Carga inicial: me + chats
+  // ─────────────────────────────────────────────────────────
   const loadMeAndChats = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+
       const r1 = await fetch(`${API}/me`, { credentials: "include" });
       const d1 = await r1.json();
       if (!d1.ok) {
         setError("No hay sesión activa. Inicia sesión.");
         setLoading(false);
+        router.replace("/Login");
         return;
       }
       setMe(d1.user);
@@ -49,7 +65,7 @@ export default function ChatsPage() {
       const d2 = await r2.json();
       if (d2.ok) {
         setChats(d2.chats || []);
-        if ((d2.chats || []).length && !activeChat) setActiveChat(d2.chats[0].id_chat);
+        if ((d2.chats || []).length) setActiveChat(d2.chats[0].id_chat);
       } else {
         setError(d2.msg || "No se pudieron cargar los chats");
       }
@@ -58,26 +74,34 @@ export default function ChatsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeChat]);
+  }, [router]);
 
   useEffect(() => {
     loadMeAndChats();
   }, [loadMeAndChats]);
 
-  // cargar mensajes del chat activo
+  // ─────────────────────────────────────────────────────────
+  // Cargar mensajes del chat activo + unirse a la sala socket
+  // ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!activeChat) return;
+
     (async () => {
       try {
-        const r = await fetch(`${API}/chats/${activeChat}/mensajes`, { credentials: "include" });
+        const r = await fetch(`${API}/chats/${activeChat}/mensajes`, {
+          credentials: "include",
+        });
         const d = await r.json();
         if (d.ok) setMensajes(d.mensajes || []);
       } catch {}
     })();
+
     socket?.emit("joinChat", activeChat);
   }, [activeChat, socket]);
 
-  // sockets
+  // ─────────────────────────────────────────────────────────
+  // Socket listeners
+  // ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
@@ -86,21 +110,20 @@ export default function ChatsPage() {
         setMensajes((prev) => [...prev, msg]);
       }
     };
-    const onChatCreado = (chat) => {
-      // si el usuario actual fue agregado, al refrescar lo verá.
-      // Para simplicidad, refrescamos la lista siempre:
-      loadMeAndChats();
-    };
+    const onChatCreado = () => loadMeAndChats();
 
     socket.on("nuevoMensaje", onNuevo);
     socket.on("chatCreado", onChatCreado);
+
     return () => {
       socket.off("nuevoMensaje", onNuevo);
       socket.off("chatCreado", onChatCreado);
     };
   }, [socket, activeChat, loadMeAndChats]);
 
-  // enviar mensaje
+  // ─────────────────────────────────────────────────────────
+  // Acciones
+  // ─────────────────────────────────────────────────────────
   const enviar = async (e) => {
     e.preventDefault();
     if (!texto.trim() || !activeChat) return;
@@ -114,7 +137,6 @@ export default function ChatsPage() {
     if (d.ok) setTexto("");
   };
 
-  // invitar por correo (en chat activo)
   const invitar = async (e) => {
     e?.preventDefault?.();
     if (!activeChat || !correoInvitar.trim()) return;
@@ -133,7 +155,6 @@ export default function ChatsPage() {
     }
   };
 
-  // crear grupo
   const crearGrupo = async (e) => {
     e?.preventDefault?.();
     if (!groupName.trim()) return alert("Ponle un nombre al grupo");
@@ -156,7 +177,6 @@ export default function ChatsPage() {
         setShowCreate(false);
         setGroupName("");
         setGroupEmails("");
-        // refrescar y abrir el nuevo chat
         await loadMeAndChats();
         setActiveChat(d.chat.id_chat);
       } else {
@@ -167,7 +187,6 @@ export default function ChatsPage() {
     }
   };
 
-  // filtro de chats
   const filteredChats = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return chats;
@@ -176,7 +195,6 @@ export default function ChatsPage() {
     );
   }, [search, chats]);
 
-  // logout
   const doLogout = useCallback(async () => {
     try {
       setLoggingOut(true);
@@ -185,18 +203,9 @@ export default function ChatsPage() {
     router.replace("/Login");
   }, [router]);
 
-  // cerrar modales con ESC
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") {
-        setShowLogout(false);
-        setShowCreate(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
+  // ─────────────────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────────────────
   return (
     <div className={styles.wrapper}>
       {/* Sidebar */}
@@ -208,7 +217,7 @@ export default function ChatsPage() {
           </p>
         </div>
 
-        {/* Acciones: crear grupo */}
+        {/* Search + Crear grupo */}
         <div className={styles.searchBar}>
           <input
             className={styles.searchInput}
@@ -218,9 +227,9 @@ export default function ChatsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <button className={styles.createGroupBtn} onClick={() => setShowCreate(true)}>
-            Nuevo grupo
-          </button>
+            <button className={styles.createGroupBtn} onClick={() => setShowCreate(true)}>
+              Nuevo grupo
+            </button>
           </div>
         </div>
 
@@ -228,18 +237,18 @@ export default function ChatsPage() {
         <ul className={styles.chatList}>
           {loading && <li className={styles.chatItem}>Cargando…</li>}
           {!loading && error && <li className={styles.chatItem}>{error}</li>}
-          {!loading && !error && filteredChats.map((c) => (
-            <li
-              key={c.id_chat}
-              className={`${styles.chatItem} ${activeChat === c.id_chat ? styles.chatItemActive : ""}`}
-              onClick={() => setActiveChat(c.id_chat)}
-            >
-              <div className={styles.chatTitle}>{c.nombre || `Chat ${c.id_chat}`}</div>
-              <div className={styles.chatMeta}>
-                {c.es_grupo ? `Grupo • ${c.participantes ?? ""}` : "1 a 1"}
-              </div>
-            </li>
-          ))}
+          {!loading &&
+            !error &&
+            filteredChats.map((c) => (
+              <li
+                key={c.id_chat}
+                className={`${styles.chatItem} ${activeChat === c.id_chat ? styles.chatItemActive : ""}`}
+                onClick={() => setActiveChat(c.id_chat)}
+              >
+                <div className={styles.chatTitle}>{c.nombre || `Chat ${c.id_chat}`}</div>
+                <div className={styles.chatMeta}>{c.es_grupo ? "Grupo" : "1 a 1"}</div>
+              </li>
+            ))}
           {!loading && !error && !filteredChats.length && (
             <li className={styles.chatItem}>No hay chats</li>
           )}
@@ -324,7 +333,7 @@ export default function ChatsPage() {
           </div>
         )}
 
-        {/* Barra de invitación en chat activo */}
+        {/* Barra de invitación */}
         {activeChat && (
           <form className={styles.inviteBar} onSubmit={invitar}>
             <input
