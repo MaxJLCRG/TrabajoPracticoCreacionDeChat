@@ -18,7 +18,7 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const { realizarQuery } = require("./modulos/mysql");
 
-// ── .env (toma el primero que exista en /Back)
+// ── .env (toma el primero que exista /Back)
 const envCandidates = [".home.env", ".pio.env", ".env"];
 const chosenEnv =
 	envCandidates.find((f) => fs.existsSync(path.join(__dirname, f))) || ".env";
@@ -96,123 +96,96 @@ function requireLogin(req, res, next) {
 	});
 });
 
+
 // ====================================================================
 // RUTAS PRINCIPALES
 // ====================================================================
 
-// Health
+// Health check (útil para probar puerto)
 app.get("/__health", (req, res) => res.json({ ok: true, msg: "alive" }));
 
-// REGISTER
+// --------------------------- REGISTER -------------------------------
 app.post("/register", async (req, res) => {
 	try {
-		let { nombre, correo, contrasena } = req.body;
-		if (!nombre || !correo || !contrasena) {
+		const { nombre, correo, contrasena } = req.body || {};
+		if (!nombre || !correo || !contrasena)
 		return res.status(400).json({ ok: false, msg: "Faltan datos" });
-		}
-		correo = String(correo).trim().toLowerCase();
 
+		// ¿ya existe?
 		const existe = await realizarQuery(`
-		SELECT id_usuario FROM UsuariosWPP
-		WHERE LOWER(correo)='${q(correo)}'
-		LIMIT 1
+		SELECT id_usuario FROM UsuariosWPP WHERE correo='${q(correo)}' LIMIT 1
 		`);
-		if (existe.length) {
+		if (existe?.length) {
 		return res.status(409).json({ ok: false, msg: "El correo ya está registrado" });
 		}
 
 		const hash = await bcrypt.hash(contrasena, 10);
-		const insert = await realizarQuery(`
+		const ins = await realizarQuery(`
 		INSERT INTO UsuariosWPP (nombre, correo, contrasena, numero, foto_perfil)
-		VALUES ('${q(nombre)}','${q(correo)}','${q(hash)}','', '')
+		VALUES ('${q(nombre)}', '${q(correo)}', '${q(hash)}', NULL, NULL)
 		`);
 
-		req.session.userId = insert.insertId;
-		res.json({ ok: true, userId: insert.insertId });
+		req.session.userId = ins.insertId;
+		res.json({ ok: true, user: { id_usuario: ins.insertId, nombre, correo } });
 	} catch (err) {
 		console.error("REGISTER ERROR:", err);
 		res.status(500).json({ ok: false, msg: "Error servidor (register)" });
 	}
-	});
+});
 
-// LOGIN
+// ----------------------------- LOGIN --------------------------------
 app.post("/login", async (req, res) => {
 	try {
-		let { correo, contrasena } = req.body;
-		if (!correo || !contrasena) {
-		return res.status(400).json({ ok: false, msg: "Faltan datos" });
-		}
-		correo = String(correo).trim().toLowerCase();
+		const { correo, contrasena } = req.body || {};
+		if (!correo || !contrasena)
+		return res.status(400).json({ ok: false, msg: "Faltan credenciales" });
 
 		const rows = await realizarQuery(`
 		SELECT id_usuario, nombre, correo, contrasena, foto_perfil
 		FROM UsuariosWPP
-		WHERE LOWER(correo)='${q(correo)}'
+		WHERE correo='${q(correo)}'
 		LIMIT 1
-		`);
-		if (!rows.length) {
-		return res.status(401).json({ ok: false, msg: "Credenciales inválidas" });
-		}
+    `);
+    if (!rows?.length) return res.status(401).json({ ok: false, msg: "Credenciales inválidas" });
 
-		const user = rows[0];
-		const stored = user.contrasena || "";
-		let okPass = false;
+    const user = rows[0];
+    const okPass = await bcrypt.compare(contrasena, user.contrasena || "");
+    if (!okPass) return res.status(401).json({ ok: false, msg: "Credenciales inválidas" });
 
-		if (stored.startsWith("$2a$") || stored.startsWith("$2b$")) {
-		okPass = await bcrypt.compare(contrasena, stored);
-		} else {
-		okPass = stored === contrasena;
-		if (okPass) {
-			const newHash = await bcrypt.hash(contrasena, 10);
-			await realizarQuery(`
-			UPDATE UsuariosWPP SET contrasena='${q(newHash)}'
-			WHERE id_usuario=${user.id_usuario}
-			`);
-		}
-		}
-
-		if (!okPass) {
-		return res.status(401).json({ ok: false, msg: "Credenciales inválidas" });
-		}
-
-		req.session.userId = user.id_usuario;
-		res.json({
-		ok: true,
-		user: {
-			id_usuario: user.id_usuario,
-			nombre: user.nombre,
-			correo: user.correo,
-			foto_perfil: user.foto_perfil,
-		},
-		});
+    req.session.userId = user.id_usuario;
+    res.json({ ok: true, user: { id_usuario: user.id_usuario, nombre: user.nombre, correo: user.correo, foto_perfil: user.foto_perfil } });
 	} catch (err) {
 		console.error("LOGIN ERROR:", err);
 		res.status(500).json({ ok: false, msg: "Error servidor (login)" });
 	}
-	});
+});
 
-// ME
-app.get("/me", requireLogin, async (req, res) => {
-	try {
-		const me = await realizarQuery(`
+// ------------------------------ ME ----------------------------------
+app.get("/me", async (req, res) => {
+	try {	
+    const userId = Number(req.session?.userId);
+    if (!userId) return res.json({ ok: false });
+
+    const u = await realizarQuery(`
 		SELECT id_usuario, nombre, correo, foto_perfil
 		FROM UsuariosWPP
-		WHERE id_usuario=${Number(req.session.userId)}
+		WHERE id_usuario=${userId}
 		LIMIT 1
-		`);
-		res.json({ ok: true, user: me[0] });
-	} catch (err) {
-		console.error("ME ERROR:", err);
-		res.status(500).json({ ok: false, msg: "Error servidor (me)" });
+    `);
+    if (!u?.length) return res.json({ ok: false });
+
+    res.json({ ok: true, user: u[0] });
+	} catch {
+		res.json({ ok: false });
 	}
 });
 
-// LOGOUT
+// ---------------------------- LOGOUT --------------------------------
 app.post("/logout", (req, res) => {
-	req.session.destroy(() => res.json({ ok: true }));
+	req.session?.destroy?.(() => res.json({ ok: true }));
 });
 
-// LISTA DE CHATS del usuario
+// ----------------------- LISTA DE CHATS ------------------------------
 app.get("/chats", requireLogin, async (req, res) => {
 	try {
 		const userId = Number(req.session.userId);
@@ -252,13 +225,14 @@ app.get("/chats", requireLogin, async (req, res) => {
 	}
 });
 
-// MENSAJES de un chat (GET)  — Ruta REST usada por el front
+// ------------------- MENSAJES DE UN CHAT ----------------------------
 app.get("/chats/:id/mensajes", requireLogin, async (req, res) => {
 	try {
-		const idChat = Number(req.params.id);
+		const idChat = toNum(req.params.id);
+		if (!Number.isFinite(idChat)) return res.status(400).json({ ok: false, msg: "idChat inválido" });
 
 		const mensajes = await realizarQuery(`
-		SELECT
+		SELECT 
 			m.id_mensaje,
 			m.texto,
 			m.fecha_mensaje,
@@ -280,145 +254,183 @@ app.get("/chats/:id/mensajes", requireLogin, async (req, res) => {
 	}
 });
 
-// ENVIAR MENSAJE al chat (POST)
+// Enviar mensaje
 app.post("/chats/:id/mensajes", requireLogin, async (req, res) => {
 	try {
-		const idChat = Number(req.params.id);
 		const userId = Number(req.session.userId);
-		const { texto } = req.body;
+		const idChat = toNum(req.params.id);
+		const { texto } = req.body || {};
+		if (!Number.isFinite(idChat)) return res.status(400).json({ ok: false, msg: "idChat inválido" });
+		if (!texto?.trim()) return res.status(400).json({ ok: false, msg: "Texto vacío" });
 
-		if (!texto || !String(texto).trim()) {
-		return res.status(400).json({ ok: false, msg: "Texto requerido" });
-		}
-
-		const rel = await realizarQuery(`
-		SELECT id_usuario_chat FROM UsuariosPorChatWPP
-		WHERE id_chat=${idChat} AND id_usuario=${userId}
+// buscar id_usuario_chat del remitente en ese chat
+    const uc = await realizarQuery(`
+		SELECT id_usuario_chat
+		FROM UsuariosPorChatWPP
+		WHERE id_chat = ${idChat} AND id_usuario = ${userId}
 		LIMIT 1
-		`);
-		if (!rel.length) {
-		return res.status(403).json({ ok: false, msg: "No perteneces al chat" });
-		}
+    `);
+    if (!uc?.length) return res.status(403).json({ ok: false, msg: "No perteneces a este chat" });
 
-		const uChatId = rel[0].id_usuario_chat;
-		const ins = await realizarQuery(`
+    const ins = await realizarQuery(`
 		INSERT INTO MensajesWPP (texto, fecha_mensaje, leido, id_usuario_chat)
-		VALUES ('${q(texto)}', NOW(), 0, ${uChatId})
-		`);
+		VALUES ('${q(texto)}', NOW(), 0, ${uc[0].id_usuario_chat})
+    `);
 
-		// Obtener nombre del autor para enviar por socket
-		const me = await realizarQuery(`
-		SELECT nombre, foto_perfil FROM UsuariosWPP
-		WHERE id_usuario=${userId} LIMIT 1
-		`);
+// payload para socket
+    const remitente = await realizarQuery(`
+		SELECT id_usuario, nombre FROM UsuariosWPP WHERE id_usuario=${userId} LIMIT 1
+    `);
 
-		const payload = {
+    const msg = {
 		id_mensaje: ins.insertId,
-		id_chat: idChat,
-		id_usuario: userId,
-		nombre: me[0]?.nombre ?? "Usuario",
 		texto,
-		fecha_mensaje: new Date().toISOString(),
+		fecha_mensaje: new Date(),
 		leido: 0,
-		};
+		id_usuario: userId,
+		nombre: remitente?.[0]?.nombre || "Usuario",
+		id_chat: idChat,
+    };
 
-		io.to(`chat:${idChat}`).emit("nuevoMensaje", payload);
-		res.json({ ok: true, mensaje: payload });
+    io.to(`chat:${idChat}`).emit("nuevoMensaje", msg);
+    res.json({ ok: true, msg });
 	} catch (err) {
 		console.error("POST /chats/:id/mensajes ERROR:", err);
-		res.status(500).json({ ok: false, msg: "Error servidor (enviar)" });
+		res.status(500).json({ ok: false, msg: "Error servidor (enviar mensaje)" });
 	}
 });
 
-// CREAR GRUPO (POST)  body: { nombre, correos: [emails] }
+// -------------------- INVITAR POR CORREO A UN CHAT ------------------
+app.post("/chats/:id/invite", requireLogin, async (req, res) => {
+	try {
+    const idChat = toNum(req.params.id);
+    const { correo } = req.body || {};
+    if (!Number.isFinite(idChat)) return res.status(400).json({ ok: false, msg: "idChat inválido" });
+    if (!correo) return res.status(400).json({ ok: false, msg: "Falta correo" });
+
+    const u = await realizarQuery(`
+		SELECT id_usuario FROM UsuariosWPP WHERE correo='${q(correo)}' LIMIT 1
+    `);
+    if (!u?.length) return res.status(404).json({ ok: false, msg: "No existe usuario con ese correo" });
+
+    const invitedId = Number(u[0].id_usuario);
+
+    const ya = await realizarQuery(`
+		SELECT 1 FROM UsuariosPorChatWPP WHERE id_chat=${idChat} AND id_usuario=${invitedId} LIMIT 1
+		`);
+		if (ya?.length) return res.json({ ok: true, msg: "Ya era miembro" });
+
+		await realizarQuery(`
+		INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+		VALUES (${invitedId}, ${idChat})
+		`);
+
+		io.to(`user:${invitedId}`).emit?.("chatCreado", { id_chat: idChat });
+		res.json({ ok: true, msg: "Usuario invitado" });
+	} catch (err) {
+		console.error("POST /chats/:id/invite ERROR:", err);
+		res.status(500).json({ ok: false, msg: "Error servidor (invite)" });
+	}
+	});
+
+// ------------------- CREAR GRUPO CON CORREOS ------------------------
 app.post("/chats", requireLogin, async (req, res) => {
 	try {
 		const userId = Number(req.session.userId);
-		const { nombre, correos = [] } = req.body;
+		const { nombre, correos = [] } = req.body || {};
+		if (!nombre?.trim()) return res.status(400).json({ ok: false, msg: "Falta nombre" });
 
-		if (!nombre || !String(nombre).trim())
-		return res.status(400).json({ ok: false, msg: "Nombre requerido" });
+    const ins = await realizarQuery(`
+		INSERT INTO ChatsWPP (es_grupo, nombre, foto_grupo)
+		VALUES (1, '${q(nombre)}', NULL)
+    `);
+    const idChat = ins.insertId;
 
-		// crear chat
-		const chatIns = await realizarQuery(`
-		INSERT INTO ChatsWPP (nombre, es_grupo, foto_grupo)
-		VALUES ('${q(nombre)}', 1, '')
-		`);
-		const chatId = chatIns.insertId;
-
-		// vincular creador
-		await realizarQuery(`
+// Agregar creador
+    await realizarQuery(`
 		INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
-		VALUES (${userId}, ${chatId})
-		`);
+		VALUES (${userId}, ${idChat})
+    `);
 
-		// invitar correos existentes
-		for (const c of Array.isArray(correos) ? correos : []) {
-		const correo = String(c).trim().toLowerCase();
-		if (!correo) continue;
-
-		const u = await realizarQuery(`
-			SELECT id_usuario FROM UsuariosWPP
-			WHERE LOWER(correo)='${q(correo)}' LIMIT 1
+// Agregar mails válidos
+	if (Array.isArray(correos) && correos.length) {
+		const inUsers = await realizarQuery(`
+			SELECT id_usuario, correo FROM UsuariosWPP
+			WHERE correo IN (${correos.map((c) => `'${q(c)}'`).join(",")})
 		`);
-		if (!u.length) continue;
-
-		const uid = u[0].id_usuario;
-		const ya = await realizarQuery(`
-			SELECT id_usuario_chat FROM UsuariosPorChatWPP
-			WHERE id_usuario=${uid} AND id_chat=${chatId} LIMIT 1
-		`);
-		if (!ya.length) {
+		if (inUsers?.length) {
+			const values = inUsers
+			.map((u) => `(${u.id_usuario}, ${idChat})`)
+			.join(",");
 			await realizarQuery(`
 			INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
-			VALUES (${uid}, ${chatId})
+			VALUES ${values}
 			`);
 		}
-    }
-
-		const chat = { id_chat: chatId, nombre, es_grupo: 1, foto_grupo: "" };
-		io.emit("chatCreado", chat);
-		res.json({ ok: true, chat });
-	} catch (err) {
-		console.error("POST /chats ERROR:", err);
-		res.status(500).json({ ok: false, msg: "Error servidor (crear grupo)" });
-	}
-});
-
-// INVITAR por correo a un chat existente
-app.post("/chats/:id/invite", requireLogin, async (req, res) => {
-	try {
-		const idChat = Number(req.params.id);
-		const { correo } = req.body;
-		if (!correo) return res.status(400).json({ ok: false, msg: "Correo requerido" });
-
-		const c = String(correo).trim().toLowerCase();
-
-		const u = await realizarQuery(`
-		SELECT id_usuario FROM UsuariosWPP
-		WHERE LOWER(correo)='${q(c)}' LIMIT 1
-		`);
-		if (!u.length) return res.status(404).json({ ok: false, msg: "Usuario no encontrado" });
-
-		const uid = u[0].id_usuario;
-
-		const ya = await realizarQuery(`
-		SELECT id_usuario_chat FROM UsuariosPorChatWPP
-		WHERE id_usuario=${uid} AND id_chat=${idChat} LIMIT 1
-		`);
-		if (!ya.length) {
-		await realizarQuery(`
-			INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
-			VALUES (${uid}, ${idChat})
-		`);
 		}
 
-		res.json({ ok: true, msg: "Usuario agregado al chat" });
+		io.emit("chatCreado", { id_chat: idChat });
+		res.json({ ok: true, chat: { id_chat: idChat } });
 	} catch (err) {
-		console.error("POST /chats/:id/invite ERROR:", err);
-		res.status(500).json({ ok: false, msg: "Error servidor (invitar)" });
+		console.error("POST /chats ERROR:", err);
+		res.status(500).json({ ok: false, msg: "Error servidor (crear chat)" });
 	}
 });
+
+// ------------------ CREAR / REUTILIZAR CHAT 1:1 ---------------------
+app.post("/chats/dm", requireLogin, async (req, res) => {
+	try {
+		const userId = Number(req.session.userId);
+		const { correo } = req.body || {};
+		if (!correo) return res.status(400).json({ ok: false, msg: "Falta correo" });
+
+// Usuario destino
+    const users = await realizarQuery(`
+		SELECT id_usuario FROM UsuariosWPP WHERE correo='${q(correo)}' LIMIT 1
+    `);
+    if (!users?.length) {
+		return res.status(404).json({ ok: false, msg: "No existe un usuario con ese correo" });
+    }
+    const otherId = Number(users[0].id_usuario);
+    if (otherId === userId) {
+		return res.status(400).json({ ok: false, msg: "No puedes crear un chat contigo mismo" });
+    }
+
+    const existing = await realizarQuery(`
+		SELECT c.id_chat
+		FROM ChatsWPP c
+		JOIN UsuariosPorChatWPP u1 ON u1.id_chat = c.id_chat AND u1.id_usuario = ${userId}
+		JOIN UsuariosPorChatWPP u2 ON u2.id_chat = c.id_chat AND u2.id_usuario = ${otherId}
+		WHERE c.es_grupo = 0
+		LIMIT 1
+		`);
+		if (existing?.length) {
+		return res.json({ ok: true, chat: { id_chat: existing[0].id_chat }, reused: true });
+    }
+
+// Crear 1:1
+		const insChat = await realizarQuery(`
+		INSERT INTO ChatsWPP (es_grupo, nombre, foto_grupo)
+		VALUES (0, NULL, NULL)
+		`);
+		const newChatId = insChat.insertId;
+
+		await realizarQuery(`
+		INSERT INTO UsuariosPorChatWPP (id_usuario, id_chat)
+		VALUES (${userId}, ${newChatId}), (${otherId}, ${newChatId})
+		`);
+
+		io.to(`user:${userId}`).emit?.("chatCreado", { id_chat: newChatId });
+		io.to(`user:${otherId}`).emit?.("chatCreado", { id_chat: newChatId });
+
+		res.json({ ok: true, chat: { id_chat: newChatId } });
+	} catch (err) {
+		console.error("POST /chats/dm ERROR:", err);
+		res.status(500).json({ ok: false, msg: "Error servidor (crear DM)" });
+	}
+});
+
+
 
 // ====================================================================
 // RUTAS DE DEBUG

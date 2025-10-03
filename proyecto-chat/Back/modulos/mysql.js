@@ -1,6 +1,6 @@
 ﻿// Back/modulos/mysql.js
 // ====================================================================
-// Conexión MySQL (mysql2/promise) con carga de .env por prioridad
+// Conexión MySQL (mysql2/promise)  carga  .env x prioridad
 // ====================================================================
 
 const mysql = require("mysql2/promise");
@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
 
-// ── Cargar el primer archivo de entorno que exista en /Back
+// ── Cargar el primer archivo de entorno en /Back
 const envCandidates = [".home.env", ".pio.env", ".env"];
 const chosenEnv =
   envCandidates.find((f) => fs.existsSync(path.join(__dirname, "..", f))) ||

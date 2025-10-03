@@ -1,12 +1,12 @@
-// src/app/Chats/page.js
 "use client";
 
 /* =========================================================
-   CHATS Page (frontend)
-   - Lista tus chats
-   - Abre chat y trae mensajes
-   - Envía mensajes
-   - Crea grupos e invita por correo
+    CHATS Page (frontend)
+    - Lista tus chats
+    - Abre chat y trae mensajes
+    - Envía mensajes
+    - Crea grupos e invita por correo
+    - NUEVO: en la barra de búsqueda, si escribes un email y presionas Enter,
    ========================================================= */
 
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -14,8 +14,7 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/Styles/Chats.module.css";
 import { useSocket } from "@/hooks/useSocket";
 
-// Ajusta si usas otro puerto
-const API = "http://localhost:4000";
+const API = "http://localhost:4000"; // ajusta si corresponde
 
 export default function ChatsPage() {
   const router = useRouter();
@@ -26,8 +25,10 @@ export default function ChatsPage() {
   const [activeChat, setActiveChat] = useState(null);
   const [mensajes, setMensajes] = useState([]);
   const [texto, setTexto] = useState("");
-  const [correoInvitar, setCorreoInvitar] = useState("");
+
   const [search, setSearch] = useState("");
+  const [correoInvitar, setCorreoInvitar] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -42,6 +43,9 @@ export default function ChatsPage() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const { socket, isConnected } = useSocket();
+
+  // Helpers
+  const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s).trim());
 
   // ─────────────────────────────────────────────────────────
   // Carga inicial: me + chats
@@ -99,9 +103,9 @@ export default function ChatsPage() {
     socket?.emit("joinChat", activeChat);
   }, [activeChat, socket]);
 
-  // ─────────────────────────────────────────────────────────
-  // Socket listeners
-  // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// Socket listeners
+// ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
@@ -121,9 +125,9 @@ export default function ChatsPage() {
     };
   }, [socket, activeChat, loadMeAndChats]);
 
-  // ─────────────────────────────────────────────────────────
-  // Acciones
-  // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// Acciones
+// ─────────────────────────────────────────────────────────
   const enviar = async (e) => {
     e.preventDefault();
     if (!texto.trim() || !activeChat) return;
@@ -137,24 +141,52 @@ export default function ChatsPage() {
     if (d.ok) setTexto("");
   };
 
-  const invitar = async (e) => {
-    e?.preventDefault?.();
-    if (!activeChat || !correoInvitar.trim()) return;
-    const r = await fetch(`${API}/chats/${activeChat}/invite`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ correo: correoInvitar.trim() }),
-    });
-    const d = await r.json();
-    if (d.ok) {
-      setCorreoInvitar("");
-      alert(d.msg || "Usuario invitado");
-    } else {
-      alert(d.msg || "No se pudo invitar");
+  const invitar = async (email) => {
+    const correo = String(email || correoInvitar).trim();
+    if (!activeChat) {
+      alert("Selecciona un chat para invitar.");
+      return;
+    }
+    if (!isEmail(correo)) {
+      alert("Ingresa un correo válido.");
+      return;
+    }
+    try {
+      const r = await fetch(`${API}/chats/${activeChat}/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ correo }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        if (!email) setCorreoInvitar("");
+        alert(d.msg || "Usuario invitado");
+      } else {
+        alert(d.msg || "No se pudo invitar");
+      }
+    } catch {
+      alert("Error de red al invitar");
     }
   };
+  
+// Funcion del Enter barra de busqueda
+const onSearchKeyDown = async (e) => {
+  if (e.key !== "Enter") return;
+  const term = search.trim();
+  if (!isEmail(term)) return;
+  e.preventDefault();
 
+  if (activeChat) {
+    await invitar(term);
+    setSearch("");
+  } else {
+    await crearDM(term);
+    setSearch("");
+  }
+};
+
+// Crear grupo
   const crearGrupo = async (e) => {
     e?.preventDefault?.();
     if (!groupName.trim()) return alert("Ponle un nombre al grupo");
@@ -203,9 +235,29 @@ export default function ChatsPage() {
     router.replace("/Login");
   }, [router]);
 
-  // ─────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────
+async function crearDM(correo) {
+  try {
+    const r = await fetch(`${API}/chats/dm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ correo }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      alert(d.msg || "No se pudo crear el chat 1:1");
+      return;
+    }
+    await loadMeAndChats();
+    setActiveChat(d.chat.id_chat);
+  } catch (e) {
+    alert("Error de red creando el chat 1:1");
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────────────────
   return (
     <div className={styles.wrapper}>
       {/* Sidebar */}
@@ -225,6 +277,7 @@ export default function ChatsPage() {
             placeholder="Buscar chat…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={onSearchKeyDown}
           />
           <div style={{ marginTop: 8, display: "flex", justifyContent: "space-between", gap: 8 }}>
             <button className={styles.createGroupBtn} onClick={() => setShowCreate(true)}>
@@ -331,21 +384,6 @@ export default function ChatsPage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Barra de invitación */}
-        {activeChat && (
-          <form className={styles.inviteBar} onSubmit={invitar}>
-            <input
-              className={styles.inviteInput}
-              type="email"
-              placeholder="Invitar por correo…"
-              value={correoInvitar}
-              onChange={(e) => setCorreoInvitar(e.target.value)}
-              required
-            />
-            <button className={styles.inviteBtn} type="submit">Invitar</button>
-          </form>
         )}
 
         {/* Mensajes */}
